@@ -12,7 +12,7 @@ export function MainMenu({ onStart, onMultiplayer, onSettings, onLeaderboard }: 
     <div className="flex flex-col items-center justify-center min-h-screen text-center px-8 bg-gradient-to-b from-white to-gray-50">
       {/* Title */}
       <h1 className="text-gray-900 mb-16 text-5xl md:text-7xl font-bold">
-        Stroop Test
+        Stroop Effect
       </h1>
 
       {/* Main Buttons */}
