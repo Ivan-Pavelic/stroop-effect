@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  ime          String
+  prezime      String
+  dob          DateTime
+  spol         String
+  email        String    @unique
+  lozinka_hash String
+  created_at   DateTime  @default(now())
+  
+  games        Game[]
+  ai_analyses  AIAnalysis[]
+  feedbacks    Feedback[]
+  
+  @@map("users")
+}
+
+model Game {
+  id                        Int      @id @default(autoincrement())
+  user_id                   Int
+  datum                     DateTime @default(now())
+  trajanje                  Int
+  broj_zadataka             Int
+  broj_pogresaka            Int
+  prosjecno_vrijeme_odgovora Float
+  
+  user   User    @relation(fields: [user_id], references: [id])
+  result Result?
+  
+  @@map("games")
+}
+
+model Result {
+  id              Int   @id @default(autoincrement())
+  game_id         Int   @unique
+  tocnost         Float
+  brzina          Float
+  kognitivni_score Int
+  
+  game Game @relation(fields: [game_id], references: [id])
+  
+  @@map("results")
+}
+
+model AITask {
+  id           Int    @id @default(autoincrement())
+  task_text    String
+  boja_teksta  String
+  tocan_odgovor String
+  tezina       String
+  
+  @@map("ai_tasks")
+}
+
+model AIAnalysis {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  rezultat_ai String
+  datum       DateTime @default(now())
+  
+  user User @relation(fields: [user_id], references: [id])
+  
+  @@map("ai_analysis")
+}
+
+model Feedback {
+  id       Int    @id @default(autoincrement())
+  user_id  Int
+  komentar String
+  ocjena   Int
+  
+  user User @relation(fields: [user_id], references: [id])
+  
+  @@map("feedback")
+}

@@ -1,0 +1,76 @@
+export interface User {
+  id: number;
+  ime: string;
+  prezime: string;
+  dob: Date;
+  spol: string;
+  email: string;
+  lozinka_hash: string;
+  created_at: Date;
+}
+
+export interface Game {
+  id: number;
+  user_id: number;
+  datum: Date;
+  trajanje: number;
+  broj_zadataka: number;
+  broj_pogresaka: number;
+  prosjecno_vrijeme_odgovora: number;
+}
+
+export interface Result {
+  id: number;
+  game_id: number;
+  tocnost: number;
+  brzina: number;
+  kognitivni_score: number;
+}
+
+export interface AITask {
+  id: number;
+  task_text: string;
+  boja_teksta: string;
+  tocan_odgovor: string;
+  tezina: string;
+}
+
+export interface AIAnalysis {
+  id: number;
+  user_id: number;
+  rezultat_ai: string;
+  datum: Date;
+}
+
+export interface Feedback {
+  id: number;
+  user_id: number;
+  komentar: string;
+  ocjena: number;
+}
+
+export interface AuthRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest extends AuthRequest {
+  ime: string;
+  prezime: string;
+  dob: string;
+  spol: string;
+}
+
+export interface GameResult {
+  score: number;
+  totalRounds: number;
+  accuracy: number;
+  avgTime: number;
+  roundTimes: number[];
+  answers: boolean[];
+}
+
+export interface JWTPayload {
+  userId: number;
+  email: string;
+}
