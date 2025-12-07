@@ -327,7 +327,7 @@ Open your browser and navigate to:
 
 | Name | GitHub | Email |
 |------|--------|-------|
-| Ivan Pavelić | [@Ivan-Pavelic](https://github.com/Ivan-Pavelic) | ivan.pavelic@fer.hr |
 | Marjan Anušić | [@marci2901](https://github.com/marci2901) | marjan.anusic@fer.hr |
 | Lucija Klanjac | [@lus-terry](https://github.com/lus-terry) | lucija.klanjac@fer.hr |
 | Lukas Schönberger | [@Mboopii](https://github.com/Mboopii) | lukas.schonberger@fer.hr |
+| Ivan Pavelić | [@Ivan-Pavelic](https://github.com/Ivan-Pavelic) | ivan.pavelic@fer.hr |
