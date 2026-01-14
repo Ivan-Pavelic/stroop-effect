@@ -171,7 +171,6 @@ def perform_cognitive_analysis(corr_mean, rt_mean, sex, age, timeofday, round_ti
         (speed_score * 0.3) +
         (consistency_score * 0.2)
     )
-    cognitive_score = cognitive_score**(1-y)
     
     # Determine performance level
     if cognitive_score >= 85:
@@ -194,7 +193,7 @@ def perform_cognitive_analysis(corr_mean, rt_mean, sex, age, timeofday, round_ti
     recommendations = generate_recommendations(corr_mean, rt_mean, consistency_score)
 
     return {
-        'cognitiveScore': cognitive_score,
+        'cognitiveScore': y,
         'level': level,
         'levelColor': color,
         'components': {
