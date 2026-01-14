@@ -4,12 +4,21 @@ from dotenv import load_dotenv
 import os
 import numpy as np
 from datetime import datetime
+from joblib import load as joblib_load
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app, origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:5000').split(','))
+MODEL_PATH = os.getenv("MODEL_PATH", "stroop_model.joblib")
+
+try:
+    MODEL = joblib_load(MODEL_PATH)
+except:
+    MODEL = None
+    
+FEATURES = ["corr_mean", "rt_mean", "age", "sex", "timeofday"]
 
 # Health check endpoint
 @app.route('/api/health', methods=['GET'])
@@ -24,19 +33,34 @@ def health_check():
 @app.route('/api/analyze', methods=['POST'])
 def analyze_performance():
     try:
+        if MODEL is None:
+            return jsonify({
+                'success': False,
+                'error': 'Model failed to load.'  
+            }), 500
+            
         data = request.json
         
         # Extract game data
-        accuracy = data.get('accuracy', 0)
-        avg_time = data.get('avgTime', 0)
+        corr_mean = data.get('corr_mean', data.get('accuracy', 0))
+        rt_mean = data.get('rt_mean', data.get('avgTime', 1000))
+        age = data.get('age', 50)
+        sex = data.get('sex', 0.5)
+        timeofday = data.get('timeofday', data.get('timeOfDay', 12*60))
+        
+        # accuracy = data.get('accuracy', 0) # corr_mean
+        # avg_time = data.get('avgTime', 0) # rt_mean
         round_times = data.get('roundTimes', [])
         answers = data.get('answers', [])
         total_rounds = data.get('totalRounds', 10)
         
         # Perform analysis
         analysis = perform_cognitive_analysis(
-            accuracy=accuracy,
-            avg_time=avg_time,
+            accuracy=corr_mean,
+            avg_time=rt_mean,
+            sex=sex,
+            age=age,
+            timeofday=timeofday,
             round_times=round_times,
             answers=answers,
             total_rounds=total_rounds
@@ -110,10 +134,16 @@ def get_insights():
         }), 500
 
 
-def perform_cognitive_analysis(accuracy, avg_time, round_times, answers, total_rounds):
+def perform_cognitive_analysis(corr_mean, rt_mean, sex, age, timeofday, round_times, answers, total_rounds):
     """
-    Analyze cognitive performance based on Stroop test results.
+    Analyze cognitive performance based on Stroop test results using Machine Learning.
     """
+    
+    if isinstance(sex, str):
+        sex = 1 if sex.lower() in ('male','m') else 0 if sex.lower() in ('female', 'f') else 0.5
+
+    x = np.array([[float(corr_mean), float(rt_mean), float(age), float(sex), int(timeofday)]])
+    y = int(MODEL.predict(x)[0])
     
     # Calculate consistency (standard deviation of response times)
     if len(round_times) > 1:
@@ -132,8 +162,8 @@ def perform_cognitive_analysis(accuracy, avg_time, round_times, answers, total_r
         improvement = 0
     
     # Calculate cognitive score components
-    accuracy_score = accuracy
-    speed_score = max(0, min(100, ((3000 - avg_time) / 2500) * 100))
+    accuracy_score = corr_mean
+    speed_score = max(0, min(100, ((3000 - rt_mean) / 2500) * 100))
     
     # Weighted cognitive score
     cognitive_score = int(
@@ -141,6 +171,7 @@ def perform_cognitive_analysis(accuracy, avg_time, round_times, answers, total_r
         (speed_score * 0.3) +
         (consistency_score * 0.2)
     )
+    cognitive_score = cognitive_score**(1-y)
     
     # Determine performance level
     if cognitive_score >= 85:
@@ -157,11 +188,11 @@ def perform_cognitive_analysis(accuracy, avg_time, round_times, answers, total_r
         color = 'orange'
     
     # Generate feedback message
-    feedback = generate_feedback(accuracy, avg_time, consistency_score, improvement)
+    feedback = generate_feedback(corr_mean, rt_mean, consistency_score, improvement)
     
     # Generate recommendations
-    recommendations = generate_recommendations(accuracy, avg_time, consistency_score)
-    
+    recommendations = generate_recommendations(corr_mean, rt_mean, consistency_score)
+
     return {
         'cognitiveScore': cognitive_score,
         'level': level,
