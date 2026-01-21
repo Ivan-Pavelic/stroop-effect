@@ -10,17 +10,46 @@ export const saveGameResult = async (req: Request, res: Response): Promise<void>
     const gameData: GameResult = req.body;
 
     if (!userId) {
-      res.status(401).json({ error: 'Not authenticated' });
+      res.status(401).json({ error: 'Niste autentificirani' });
       return;
     }
 
-    // Calculate average time
-    const avgTime = gameData.roundTimes.length > 0
-      ? gameData.roundTimes.reduce((a, b) => a + b, 0) / gameData.roundTimes.length
-      : 0;
+    // avgTime should already be calculated from correct answers only (from frontend)
+    // But verify: if trials are provided, recalculate from correct trials
+    let avgTime = gameData.avgTime;
+    let congruentAccuracy = gameData.congruentAccuracy || 0;
+    let incongruentAccuracy = gameData.incongruentAccuracy || 0;
+    let numCongruent = 0;
+    let numIncongruent = 0;
+    let correctCongruent = 0;
+    let correctIncongruent = 0;
 
-    // Calculate total duration
-    const totalDuration = gameData.roundTimes.reduce((a, b) => a + b, 0);
+    if (gameData.trials && gameData.trials.length > 0) {
+      // Recalculate from trial data
+      const correctTrials = gameData.trials.filter(t => t.isCorrect);
+      avgTime = correctTrials.length > 0
+        ? correctTrials.reduce((sum, t) => sum + t.reactionTime, 0) / correctTrials.length
+        : 0;
+
+      // Calculate congruent/incongruent stats
+      gameData.trials.forEach(trial => {
+        if (trial.isCongruent) {
+          numCongruent++;
+          if (trial.isCorrect) correctCongruent++;
+        } else {
+          numIncongruent++;
+          if (trial.isCorrect) correctIncongruent++;
+        }
+      });
+
+      congruentAccuracy = numCongruent > 0 ? (correctCongruent / numCongruent) * 100 : 0;
+      incongruentAccuracy = numIncongruent > 0 ? (correctIncongruent / numIncongruent) * 100 : 0;
+    }
+
+    // Calculate total duration (sum of all reaction times)
+    const totalDuration = gameData.roundTimes.length > 0
+      ? gameData.roundTimes.reduce((a, b) => a + b, 0)
+      : 0;
 
     // Create game record
     const game = await prisma.game.create({
@@ -30,7 +59,11 @@ export const saveGameResult = async (req: Request, res: Response): Promise<void>
         trajanje: totalDuration,
         broj_zadataka: gameData.totalRounds,
         broj_pogresaka: gameData.totalRounds - gameData.score,
-        prosjecno_vrijeme_odgovora: avgTime
+        prosjecno_vrijeme_odgovora: avgTime,
+        broj_kongruentnih: numCongruent,
+        broj_nekongruentnih: numIncongruent,
+        tocnost_kongruentnih: congruentAccuracy,
+        tocnost_nekongruentnih: incongruentAccuracy
       }
     });
 
@@ -44,14 +77,32 @@ export const saveGameResult = async (req: Request, res: Response): Promise<void>
       }
     });
 
+    // Create game session records (trial-level data)
+    if (gameData.trials && gameData.trials.length > 0) {
+      await prisma.gameSession.createMany({
+        data: gameData.trials.map((trial, index) => ({
+          game_id: game.id,
+          user_id: userId,
+          trial_number: index + 1,
+          is_congruent: trial.isCongruent,
+          word_text: trial.wordText,
+          display_color: trial.displayColor,
+          correct_answer: trial.correctAnswer,
+          user_answer: trial.userAnswer,
+          is_correct: trial.isCorrect,
+          reaction_time: trial.reactionTime
+        }))
+      });
+    }
+
     res.status(201).json({
-      message: 'Game result saved successfully',
+      message: 'Rezultat igre uspješno spremljen',
       game,
       result
     });
   } catch (error) {
     console.error('Save game result error:', error);
-    res.status(500).json({ error: 'Failed to save game result' });
+    res.status(500).json({ error: 'Neuspješno spremanje rezultata igre' });
   }
 };
 

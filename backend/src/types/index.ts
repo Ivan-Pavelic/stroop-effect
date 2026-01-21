@@ -1,11 +1,15 @@
+export type Role = 'USER' | 'ADMIN';
+
 export interface User {
   id: number;
   ime: string;
   prezime: string;
+  username: string;
   dob: Date;
   spol: string;
   email: string;
   lozinka_hash: string;
+  role: Role;
   created_at: Date;
 }
 
@@ -50,7 +54,8 @@ export interface Feedback {
 }
 
 export interface AuthRequest {
-  email: string;
+  username?: string; // For login with ime.prezime
+  email?: string;    // Alternative login method
   password: string;
 }
 
@@ -61,6 +66,16 @@ export interface RegisterRequest extends AuthRequest {
   spol: string;
 }
 
+export interface Trial {
+  isCongruent: boolean;
+  wordText: string;
+  displayColor: string;
+  correctAnswer: string;
+  userAnswer: string;
+  isCorrect: boolean;
+  reactionTime: number;
+}
+
 export interface GameResult {
   score: number;
   totalRounds: number;
@@ -68,9 +83,14 @@ export interface GameResult {
   avgTime: number;
   roundTimes: number[];
   answers: boolean[];
+  trials?: Trial[];
+  congruentAccuracy?: number;
+  incongruentAccuracy?: number;
 }
 
 export interface JWTPayload {
   userId: number;
   email: string;
+  role: Role;
+  username: string;
 }

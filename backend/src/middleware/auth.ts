@@ -54,3 +54,21 @@ export const optionalAuth = (
   }
   next();
 };
+
+export const requireAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Potrebna autentifikacija' });
+    return;
+  }
+
+  if (req.user.role !== 'ADMIN') {
+    res.status(403).json({ error: 'Pristup odbijen. Potrebna administratorska prava.' });
+    return;
+  }
+
+  next();
+};

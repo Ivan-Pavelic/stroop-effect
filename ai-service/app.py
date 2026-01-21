@@ -14,8 +14,14 @@ CORS(app, origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,http://loc
 MODEL_PATH = os.getenv("MODEL_PATH", "stroop_model.joblib")
 
 try:
-    MODEL = joblib_load(MODEL_PATH)
-except:
+    if os.path.exists(MODEL_PATH):
+        MODEL = joblib_load(MODEL_PATH)
+        print(f"Model loaded successfully from {MODEL_PATH}")
+    else:
+        print(f"Warning: Model file not found at {MODEL_PATH}. Running without ML model.")
+        MODEL = None
+except Exception as e:
+    print(f"Error loading model: {str(e)}. Running without ML model.")
     MODEL = None
     
 FEATURES = ["corr_mean", "rt_mean", "age", "sex", "timeofday"]
@@ -56,14 +62,14 @@ def analyze_performance():
         
         # Perform analysis
         analysis = perform_cognitive_analysis(
-            accuracy=corr_mean,
-            avg_time=rt_mean,
-            sex=sex,
-            age=age,
-            timeofday=timeofday,
-            round_times=round_times,
-            answers=answers,
-            total_rounds=total_rounds
+            corr_mean,
+            rt_mean,
+            sex,
+            age,
+            timeofday,
+            round_times,
+            answers,
+            total_rounds
         )
         
         return jsonify({
@@ -142,8 +148,19 @@ def perform_cognitive_analysis(corr_mean, rt_mean, sex, age, timeofday, round_ti
     if isinstance(sex, str):
         sex = 1 if sex.lower() in ('male','m') else 0 if sex.lower() in ('female', 'f') else 0.5
 
-    x = np.array([[float(corr_mean), float(rt_mean), float(age), float(sex), int(timeofday)]])
-    y = int(MODEL.predict(x)[0])
+    # Use ML model if available, otherwise use heuristic
+    if MODEL is not None:
+        try:
+            x = np.array([[float(corr_mean), float(rt_mean), float(age), float(sex), int(timeofday)]])
+            y = int(MODEL.predict(x)[0])
+        except Exception as e:
+            print(f"Error in model prediction: {str(e)}. Using heuristic fallback.")
+            # Fallback: use heuristic based on accuracy and reaction time
+            y = 1 if corr_mean < 0.6 or rt_mean > 2500 else 0
+    else:
+        # Fallback heuristic when model is not available
+        # y = 1 means negative condition, y = 0 means good condition
+        y = 1 if corr_mean < 0.6 or rt_mean > 2500 else 0
     
     # Calculate consistency (standard deviation of response times)
     if len(round_times) > 1:
@@ -195,6 +212,7 @@ def perform_cognitive_analysis(corr_mean, rt_mean, sex, age, timeofday, round_ti
     recommendations = generate_recommendations(corr_mean, rt_mean, consistency_score)
 
     return {
+        'y': int(y),  # Explicitly return y value (0 = good, 1 = negative condition)
         'cognitiveScore': cognitive_score,
         'level': level,
         'levelColor': color,
@@ -393,5 +411,5 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5001))
     debug = os.getenv('FLASK_ENV', 'development') == 'development'
     
-    print(f"🧠 AI Service starting on http://localhost:{port}")
+    print(f"AI Service starting on http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
