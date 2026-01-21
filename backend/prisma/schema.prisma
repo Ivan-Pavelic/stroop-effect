@@ -3,8 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Render PostgreSQL connection pooling support
+  // The connection_limit is set in the URL query string
 }
 
 enum Role {

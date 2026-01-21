@@ -5,18 +5,31 @@ import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// For Render PostgreSQL, use connection pooling URL if available
-// Connection pooler URLs typically have '-pooler' in the hostname
-// or you can append ?pgbouncer=true for connection pooling
+// For Render PostgreSQL, we need to handle connection pooling properly
+// Render uses PgBouncer for connection pooling
 let databaseUrl = process.env.DATABASE_URL || '';
 
-// If not already using a pooler URL, check if we should use one
-// Render provides both direct and pooler URLs
-// The pooler URL is better for serverless/autoscaling scenarios
-if (databaseUrl && !databaseUrl.includes('pooler') && process.env.DATABASE_POOLER_URL) {
-  databaseUrl = process.env.DATABASE_POOLER_URL;
-  console.log('Using database pooler URL for better connection management');
+// Add connection pooling parameters for Render
+// These parameters help Prisma work better with PgBouncer
+if (databaseUrl && !databaseUrl.includes('?')) {
+  // Add connection pool parameters
+  // pgbouncer=true tells Prisma to use transaction mode (needed for pooling)
+  // connection_limit limits the number of connections
+  databaseUrl += '?pgbouncer=true&connection_limit=1';
+  console.log('Added connection pooling parameters for Render');
+} else if (databaseUrl && !databaseUrl.includes('pgbouncer')) {
+  // URL already has parameters, append pgbouncer
+  databaseUrl += (databaseUrl.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1';
+  console.log('Added pgbouncer parameter to existing connection string');
 }
+
+// Use pooler URL if explicitly provided (Render sometimes provides separate pooler URL)
+if (process.env.DATABASE_POOLER_URL) {
+  databaseUrl = process.env.DATABASE_POOLER_URL;
+  console.log('Using explicit database pooler URL');
+}
+
+console.log('Database URL configured:', databaseUrl ? 'Set' : 'Missing');
 
 export const prisma =
   globalForPrisma.prisma ||
@@ -33,6 +46,15 @@ export const prisma =
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
+
+// Test connection on startup
+prisma.$connect()
+  .then(() => {
+    console.log('✅ Prisma connected to database');
+  })
+  .catch((error) => {
+    console.error('❌ Failed to connect to database:', error.message);
+  });
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
