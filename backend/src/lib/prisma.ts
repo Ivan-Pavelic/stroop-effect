@@ -9,27 +9,43 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 // Render uses PgBouncer for connection pooling
 let databaseUrl = process.env.DATABASE_URL || '';
 
-// Add connection pooling parameters for Render
-// These parameters help Prisma work better with PgBouncer
-if (databaseUrl && !databaseUrl.includes('?')) {
-  // Add connection pool parameters
-  // pgbouncer=true tells Prisma to use transaction mode (needed for pooling)
-  // connection_limit limits the number of connections
-  databaseUrl += '?pgbouncer=true&connection_limit=1';
-  console.log('Added connection pooling parameters for Render');
-} else if (databaseUrl && !databaseUrl.includes('pgbouncer')) {
-  // URL already has parameters, append pgbouncer
-  databaseUrl += (databaseUrl.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1';
-  console.log('Added pgbouncer parameter to existing connection string');
-}
-
 // Use pooler URL if explicitly provided (Render sometimes provides separate pooler URL)
 if (process.env.DATABASE_POOLER_URL) {
   databaseUrl = process.env.DATABASE_POOLER_URL;
   console.log('Using explicit database pooler URL');
+} else if (databaseUrl) {
+  // Parse URL to check if it already has query parameters
+  try {
+    const url = new URL(databaseUrl);
+    const params = url.searchParams;
+    
+    // Add Prisma-specific parameters for connection pooling
+    // These are needed for PgBouncer transaction mode
+    if (!params.has('pgbouncer')) {
+      params.set('pgbouncer', 'true');
+    }
+    if (!params.has('connection_limit')) {
+      params.set('connection_limit', '1');
+    }
+    // Add schema parameter for Prisma migrations (if not present)
+    if (!params.has('schema') && !params.has('schema')) {
+      params.set('schema', 'public');
+    }
+    
+    databaseUrl = url.toString();
+    console.log('Configured DATABASE_URL with connection pooling parameters');
+  } catch (error) {
+    console.warn('Could not parse DATABASE_URL, using as-is:', error);
+  }
 }
 
-console.log('Database URL configured:', databaseUrl ? 'Set' : 'Missing');
+if (!databaseUrl) {
+  console.error('❌ DATABASE_URL is not set!');
+} else {
+  // Log connection info (but hide password)
+  const urlForLog = databaseUrl.replace(/:[^:@]+@/, ':****@');
+  console.log('Database connection configured:', urlForLog);
+}
 
 export const prisma =
   globalForPrisma.prisma ||
