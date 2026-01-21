@@ -59,14 +59,9 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
-// Test connection on startup
-prisma.$connect()
-  .then(() => {
-    console.log('✅ Prisma connected to database');
-  })
-  .catch((error) => {
-    console.error('❌ Failed to connect to database:', error.message);
-  });
+// Don't test connection immediately - let it connect on first use
+// This avoids connection issues during startup
+// Connection will be established automatically on first query
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
