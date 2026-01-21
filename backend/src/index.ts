@@ -183,8 +183,10 @@ async function startServer() {
           console.error('   Trying alternative: using prisma db push to sync schema...');
           
           // Fallback: use db push to sync schema (for new databases)
+          // This is safe for new databases with no data
           try {
-            execSync('npx prisma db push --accept-data-loss', {
+            console.log('Attempting to sync schema using db push (safe for new databases)...');
+            execSync('npx prisma db push --accept-data-loss --skip-generate', {
               stdio: 'inherit',
               env: {
                 ...process.env,
@@ -192,9 +194,32 @@ async function startServer() {
               }
             });
             console.log('✅ Schema synced using db push');
+            
+            // After db push, mark migrations as applied
+            try {
+              console.log('Marking migrations as applied...');
+              execSync('npx prisma migrate resolve --applied 20251206220734_init', {
+                stdio: 'inherit',
+                env: {
+                  ...process.env,
+                  DATABASE_URL: migrationDbUrl
+                }
+              });
+              execSync('npx prisma migrate resolve --applied 20250110000000_add_auth_and_sessions', {
+                stdio: 'inherit',
+                env: {
+                  ...process.env,
+                  DATABASE_URL: migrationDbUrl
+                }
+              });
+              console.log('✅ Migrations marked as applied');
+            } catch (markError) {
+              console.warn('⚠️  Could not mark migrations as applied, but schema is synced');
+            }
           } catch (pushError: any) {
             console.error('❌ db push also failed:', pushError.message);
             console.error('   You may need to manually fix the database state.');
+            console.error('   Try: npx prisma db push --accept-data-loss');
           }
         }
       } else {
