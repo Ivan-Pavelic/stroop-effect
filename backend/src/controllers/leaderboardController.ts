@@ -7,8 +7,18 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
   try {
     const limit = parseInt(req.query.limit as string) || 10;
 
-    // Get top players based on their best cognitive score
+    // Get top players based on their best cognitive score (exclude admin users)
     const topResults = await prisma.result.findMany({
+      where: {
+        game: {
+          user: {
+            role: 'USER', // Only regular users
+            username: {
+              not: 'admin' // Also exclude default admin user
+            }
+          }
+        }
+      },
       include: {
         game: {
           include: {
@@ -16,7 +26,9 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
               select: {
                 id: true,
                 ime: true,
-                prezime: true
+                prezime: true,
+                role: true,
+                username: true
               }
             }
           }
@@ -28,15 +40,21 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
       take: limit * 2 // Get more to filter unique users
     });
 
-    // Filter to get only the best score per user
+    // Filter to get only the best score per user (and exclude any admin users)
     const userBestScores = new Map();
     
     for (const result of topResults) {
-      const userId = result.game.user.id;
+      const user = result.game.user;
+      // Double check: exclude admin users and default admin
+      if (user.role === 'ADMIN' || user.username === 'admin') {
+        continue;
+      }
+      
+      const userId = user.id;
       if (!userBestScores.has(userId) || result.kognitivni_score > userBestScores.get(userId).score) {
         userBestScores.set(userId, {
           userId,
-          name: `${result.game.user.ime} ${result.game.user.prezime.charAt(0)}.`,
+          name: `${user.ime} ${user.prezime.charAt(0)}.`,
           score: result.kognitivni_score,
           accuracy: result.tocnost,
           avgTime: result.brzina

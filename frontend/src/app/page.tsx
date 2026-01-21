@@ -1,104 +1,176 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainMenu } from '@/components/MainMenu';
 import { GameScreen } from '@/components/GameScreen';
-import { FeedbackScreen } from '@/components/FeedbackScreen';
 import { ResultsScreen } from '@/components/ResultsScreen';
-import { Settings } from '@/components/Settings';
+import { Button } from '@/components/ui/button';
 import { Leaderboard } from '@/components/Leaderboard';
+import { Login } from '@/components/Login';
+import { AdminDashboard } from '@/components/AdminDashboard';
 
-type Screen = 'menu' | 'game' | 'feedback' | 'results' | 'settings' | 'leaderboard';
-type GameMode = 'single' | 'multiplayer';
+type Screen = 'login' | 'menu' | 'game' | 'results' | 'settings' | 'leaderboard' | 'admin';
 
-interface GameSettings {
-  rounds: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  language: 'en';
+interface User {
+  id: number;
+  username: string;
+  role: string;
+  ime: string;
+  prezime: string;
+}
+
+interface Trial {
+  isCongruent: boolean;
+  wordText: string;
+  displayColor: string;
+  correctAnswer: string;
+  userAnswer: string;
+  isCorrect: boolean;
+  reactionTime: number;
 }
 
 interface GameState {
-  currentRound: number;
-  score: number;
-  streak: number;
-  answers: boolean[];
-  startTime: number;
-  roundTimes: number[];
+  trials: Trial[];
+  currentBatch: number;
+  trialInBatch: number;
+  timeRemaining: number;
+  gameStartTime: number;
+  isGameActive: boolean;
 }
 
-const defaultSettings: GameSettings = {
-  rounds: 10,
-  difficulty: 'medium',
-  language: 'en',
-};
-
 export default function Home() {
-  const [screen, setScreen] = useState<Screen>('menu');
-  const [gameMode, setGameMode] = useState<GameMode>('single');
-  const [settings, setSettings] = useState<GameSettings>(defaultSettings);
+  const [screen, setScreen] = useState<Screen>('login');
+  const [user, setUser] = useState<User | null>(null);
   const [gameState, setGameState] = useState<GameState>({
-    currentRound: 0,
-    score: 0,
-    streak: 0,
-    answers: [],
-    startTime: 0,
-    roundTimes: [],
+    trials: [],
+    currentBatch: 1,
+    trialInBatch: 1,
+    timeRemaining: 60,
+    gameStartTime: 0,
+    isGameActive: false,
   });
-  const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean>(false);
 
-  const startGame = (mode: GameMode) => {
-    setGameMode(mode);
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    if (token && userStr) {
+      try {
+        const savedUser = JSON.parse(userStr);
+        setUser(savedUser);
+        // Redirect based on role
+        if (savedUser.role === 'ADMIN') {
+          setScreen('admin');
+        } else {
+          setScreen('menu');
+        }
+      } catch (e) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  const handleLoginSuccess = (loggedInUser: User) => {
+    setUser(loggedInUser);
+    if (loggedInUser.role === 'ADMIN') {
+      setScreen('admin');
+    } else {
+      setScreen('menu');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setScreen('login');
+  };
+
+  const startGame = () => {
     setGameState({
-      currentRound: 1,
-      score: 0,
-      streak: 0,
-      answers: [],
-      startTime: Date.now(),
-      roundTimes: [],
+      trials: [],
+      currentBatch: 1,
+      trialInBatch: 1,
+      timeRemaining: 60,
+      gameStartTime: Date.now(),
+      isGameActive: true,
     });
     setScreen('game');
   };
 
-const handleAnswer = (correct: boolean) => {
-    const roundTime = Date.now() - gameState.startTime;
-    
-    const newStreak = correct ? gameState.streak + 1 : 0;
-    const newScore = correct ? gameState.score + 1 : gameState.score;
-    
-    if (gameState.currentRound >= settings.rounds) {
-      setGameState(prev => ({
+  // Timer effect
+  useEffect(() => {
+    if (!gameState.isGameActive || screen !== 'game') return;
+
+    const interval = setInterval(() => {
+      setGameState(prev => {
+        const newTimeRemaining = prev.timeRemaining - 1;
+        
+        if (newTimeRemaining <= 0) {
+          // Time's up - end game
+          clearInterval(interval);
+          return { ...prev, timeRemaining: 0, isGameActive: false };
+        }
+        
+        return { ...prev, timeRemaining: newTimeRemaining };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameState.isGameActive, screen]);
+
+  const handleTrialComplete = (trial: Trial) => {
+    setGameState(prev => {
+      const newTrials = [...prev.trials, trial];
+      let newTrialInBatch = prev.trialInBatch + 1;
+      let newCurrentBatch = prev.currentBatch;
+      
+      // Check if batch is complete (10 trials) or time is up
+      if (newTrialInBatch > 10 || prev.timeRemaining <= 0) {
+        if (prev.timeRemaining <= 0) {
+          // Time's up - end game
+          return {
+            ...prev,
+            trials: newTrials,
+            isGameActive: false,
+            timeRemaining: 0,
+          };
+        } else {
+          // Batch complete, start new batch
+          newTrialInBatch = 1;
+          newCurrentBatch = prev.currentBatch + 1;
+        }
+      }
+      
+      // Check if time is up
+      if (prev.timeRemaining <= 0) {
+        return {
+          ...prev,
+          trials: newTrials,
+          isGameActive: false,
+          timeRemaining: 0,
+        };
+      }
+      
+      return {
         ...prev,
-        score: newScore,
-        streak: newStreak,
-        answers: [...prev.answers, correct],
-        roundTimes: [...prev.roundTimes, roundTime],
-      }));
-      setScreen('results');
-    } else {
-      setGameState(prev => ({
-        ...prev,
-        currentRound: prev.currentRound + 1,
-        score: newScore,
-        streak: newStreak,
-        answers: [...prev.answers, correct],
-        roundTimes: [...prev.roundTimes, roundTime],
-        startTime: Date.now(),
-      }));
-    }
+        trials: newTrials,
+        trialInBatch: newTrialInBatch,
+        currentBatch: newCurrentBatch,
+      };
+    });
   };
 
-  const nextRound = () => {
-    if (gameState.currentRound >= settings.rounds) {
-      setScreen('results');
-    } else {
-      setGameState(prev => ({
-        ...prev,
-        currentRound: prev.currentRound + 1,
-        startTime: Date.now(),
-      }));
-      setScreen('game');
+  // Check if game should end
+  useEffect(() => {
+    if (screen === 'game' && !gameState.isGameActive && gameState.trials.length > 0) {
+      // Small delay to ensure last trial is recorded
+      setTimeout(() => {
+        setScreen('results');
+      }, 500);
     }
-  };
+  }, [gameState.isGameActive, gameState.trials.length, screen]);
 
   const returnToMenu = () => {
     setScreen('menu');
@@ -106,53 +178,60 @@ const handleAnswer = (correct: boolean) => {
 
   return (
     <main className="min-h-screen bg-white">
+      {screen === 'login' && (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      )}
+
+      {screen === 'admin' && (
+        <AdminDashboard onLogout={handleLogout} />
+      )}
+
       {screen === 'menu' && (
         <MainMenu
-          onStart={() => startGame('single')}
-          onMultiplayer={() => startGame('multiplayer')}
-          onSettings={() => setScreen('settings')}
+          onStart={startGame}
+          onMultiplayer={() => {/* Multiplayer not implemented */}}
+          onSettings={() => {/* Settings removed for end users */}}
           onLeaderboard={() => setScreen('leaderboard')}
+          onLogout={handleLogout}
         />
       )}
       
       {screen === 'game' && (
         <GameScreen
-          round={gameState.currentRound}
-          totalRounds={settings.rounds}
-          difficulty={settings.difficulty}
-          onAnswer={handleAnswer}
-          streak={gameState.streak}
-        />
-      )}
-      
-      {screen === 'feedback' && (
-        <FeedbackScreen
-          correct={lastAnswerCorrect}
-          score={gameState.score}
-          streak={gameState.streak}
-          onNext={nextRound}
+          onTrialComplete={handleTrialComplete}
+          timeRemaining={gameState.timeRemaining}
+          currentBatch={gameState.currentBatch}
+          trialInBatch={gameState.trialInBatch}
         />
       )}
       
       {screen === 'results' && (
         <ResultsScreen
-          gameState={gameState}
-          totalRounds={settings.rounds}
-          gameMode={gameMode}
+          trials={gameState.trials}
+          gameStartTime={gameState.gameStartTime}
           onReturnToMenu={returnToMenu}
-          onPlayAgain={() => startGame(gameMode)}
+          onPlayAgain={startGame}
         />
       )}
       
       {screen === 'settings' && (
-        <Settings
-          settings={settings}
-          onSave={(newSettings) => {
-            setSettings(newSettings);
-            setScreen('menu');
-          }}
-          onBack={() => setScreen('menu')}
-        />
+        <div className="flex flex-col items-center justify-center min-h-screen text-center px-4 sm:px-6 md:px-8 bg-gradient-to-b from-white to-gray-50">
+          <h1 className="text-gray-900 mb-8 sm:mb-10 md:mb-12 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold">
+            Postavke
+          </h1>
+          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 max-w-md w-full mx-2">
+            <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
+              Igra je standardizirana: 60 sekundi, serije od 10 zadataka.
+              Postavke nisu dostupne.
+            </p>
+            <Button
+              onClick={() => setScreen('menu')}
+              className="w-full h-12 sm:h-14 md:h-16 bg-blue-600 hover:bg-blue-700 text-white text-lg sm:text-xl md:text-2xl font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 touch-manipulation"
+            >
+              Natrag na izbornik
+            </Button>
+          </div>
+        </div>
       )}
       
       {screen === 'leaderboard' && (

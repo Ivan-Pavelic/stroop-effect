@@ -7,20 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id           Int       @id @default(autoincrement())
   ime          String
   prezime      String
+  username     String    @unique // Format: ime.prezime for login
   dob          DateTime
   spol         String
   email        String    @unique
   lozinka_hash String
+  role         Role      @default(USER)
   created_at   DateTime  @default(now())
   
   games        Game[]
+  gameSessions GameSession[]
   ai_analyses  AIAnalysis[]
   feedbacks    Feedback[]
   
+  @@index([username])
+  @@index([email])
   @@map("users")
 }
 
@@ -28,15 +38,44 @@ model Game {
   id                        Int      @id @default(autoincrement())
   user_id                   Int
   datum                     DateTime @default(now())
-  trajanje                  Int
+  trajanje                  Int      // Total duration in milliseconds
   broj_zadataka             Int
   broj_pogresaka            Int
-  prosjecno_vrijeme_odgovora Float
+  prosjecno_vrijeme_odgovora Float    // Average time for CORRECT answers only
+  broj_kongruentnih         Int      @default(0)
+  broj_nekongruentnih       Int      @default(0)
+  tocnost_kongruentnih      Float    @default(0)
+  tocnost_nekongruentnih    Float    @default(0)
   
   user   User    @relation(fields: [user_id], references: [id])
   result Result?
+  sessions GameSession[]
   
+  @@index([user_id])
+  @@index([datum])
   @@map("games")
+}
+
+model GameSession {
+  id                Int      @id @default(autoincrement())
+  game_id           Int
+  user_id           Int
+  trial_number      Int      // Trial number within the game
+  is_congruent      Boolean  // true = congruent, false = incongruent
+  word_text         String   // The word displayed (e.g., "RED")
+  display_color     String   // The actual color displayed (hex)
+  correct_answer    String   // The correct answer (color name)
+  user_answer       String?  // What the user selected
+  is_correct        Boolean
+  reaction_time     Int      // Time in milliseconds
+  created_at        DateTime @default(now())
+  
+  game Game @relation(fields: [game_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id])
+  
+  @@index([game_id])
+  @@index([user_id])
+  @@map("game_sessions")
 }
 
 model Result {

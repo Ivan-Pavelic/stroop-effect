@@ -38,7 +38,7 @@ export const authAPI = {
     body: JSON.stringify(userData),
   }),
 
-  login: (credentials: { email: string; password: string }) =>
+  login: (credentials: { username?: string; email?: string; password: string }) =>
     fetchAPI('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -103,4 +103,30 @@ export const aiAPI = {
     method: 'POST',
     body: JSON.stringify({ gameHistory }),
   }),
+};
+
+// Admin API
+export const adminAPI = {
+  getAllUsers: () => fetchAPI('/admin/users'),
+  
+  createUser: (userData: {
+    ime: string;
+    prezime: string;
+    email: string;
+    password: string;
+    dob: string;
+    spol: string;
+    role?: string;
+  }) => fetchAPI('/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(userData),
+  }),
+
+  deleteUser: (userId: number) => fetchAPI(`/admin/users/${userId}`, {
+    method: 'DELETE',
+  }),
+
+  getUserStats: (userId: number) => fetchAPI(`/admin/users/${userId}/stats`),
+
+  getUserAIFeedback: (userId: number) => fetchAPI(`/admin/users/${userId}/ai-feedback`),
 };
