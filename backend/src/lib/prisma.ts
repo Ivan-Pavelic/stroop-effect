@@ -17,7 +17,7 @@ if (databaseUrl && databaseUrl.includes('-pooler')) {
   console.log('Converted pooler URL to direct connection');
 }
 
-// Remove any pooling parameters that might cause issues
+// Add Render PostgreSQL specific connection parameters
 if (databaseUrl) {
   try {
     const url = new URL(databaseUrl);
@@ -27,9 +27,15 @@ if (databaseUrl) {
     params.delete('pgbouncer');
     params.delete('connection_limit');
     
-    // Keep schema if present, but don't add if not needed
+    // Add Render PostgreSQL connection parameters for stability
+    // These help with connection reliability on Render
+    params.set('connect_timeout', '10');
+    params.set('sslmode', 'require');
+    // Increase connection pool size for better reliability
+    params.set('pool_timeout', '10');
+    
     databaseUrl = url.toString();
-    console.log('Using direct database connection (pooling disabled)');
+    console.log('Using direct database connection with Render-specific parameters');
   } catch (error) {
     console.warn('Could not parse DATABASE_URL, using as-is:', error);
   }
@@ -63,22 +69,35 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Helper function to ensure connection is active
-export async function ensureConnection(retries = 3): Promise<void> {
+export async function ensureConnection(retries = 5): Promise<void> {
   for (let i = 0; i < retries; i++) {
     try {
+      // Disconnect first to ensure clean connection
+      try {
+        await prisma.$disconnect();
+      } catch {
+        // Ignore disconnect errors
+      }
+      
+      // Wait a bit before reconnecting (Render database might need time to wake up)
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 2000 * i));
+      }
+      
+      // Try to connect
       await prisma.$connect();
+      
+      // Test the connection with a simple query
+      await prisma.$queryRaw`SELECT 1`;
+      
       return;
     } catch (error: any) {
       if (i < retries - 1) {
-        console.log(`Connection attempt ${i + 1} failed, retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-        // Try to disconnect and reconnect
-        try {
-          await prisma.$disconnect();
-        } catch {
-          // Ignore disconnect errors
-        }
+        console.log(`Connection attempt ${i + 1} failed, retrying in ${2 * (i + 1)}s...`);
+        // Wait longer between retries
+        await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
       } else {
+        console.error(`All ${retries} connection attempts failed`);
         throw error;
       }
     }

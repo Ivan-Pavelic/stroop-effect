@@ -163,29 +163,23 @@ async function startServer() {
       }
     }
 
-    // Wait a bit for connection to stabilize after migrations
-    console.log('Waiting for connection to stabilize...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait longer for Render database to be ready (free tier databases can be slow to wake up)
+    console.log('Waiting for database to be ready (Render free tier may need time to wake up)...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     // Seed admin user after migrations
     console.log('Seeding admin user...');
     try {
-      // Disconnect and reconnect to ensure fresh connection
-      try {
-        await prisma.$disconnect();
-        console.log('Disconnected from database, reconnecting...');
-      } catch {
-        // Ignore disconnect errors
-      }
-      
-      // Wait a bit before reconnecting
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use ensureConnection which has retry logic built in
+      const { ensureConnection } = await import('./lib/prisma');
+      await ensureConnection();
       
       // Ensure Prisma client is reinitialized with correct connection
       await seedAdmin();
     } catch (error: any) {
       console.error('❌ Admin seeding failed:', error.message);
       console.error('   Server will start anyway. Admin can be created manually via /api/admin/seed endpoint.');
+      console.error('   Or try logging in - admin might already exist from previous deployment.');
       // Don't exit - server can still start
     }
   }
