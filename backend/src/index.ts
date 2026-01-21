@@ -205,17 +205,16 @@ async function startServer() {
       }
     } else {
       console.log('Running Prisma migrations...');
-    
-    try {
-      execSync('npx prisma migrate deploy', { 
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          DATABASE_URL: migrationDbUrl
-        }
-      });
-      console.log('✅ Migrations completed successfully');
-    } catch (error: any) {
+      try {
+        execSync('npx prisma migrate deploy', { 
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            DATABASE_URL: migrationDbUrl
+          }
+        });
+        console.log('✅ Migrations completed successfully');
+      } catch (error: any) {
       const errorMessage = error.message || '';
       console.error('❌ Migration failed:', errorMessage);
       
