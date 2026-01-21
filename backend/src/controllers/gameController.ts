@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { GameResult } from '../types';
-
-const prisma = new PrismaClient();
 
 export const saveGameResult = async (req: Request, res: Response): Promise<void> => {
   try {

@@ -2,13 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { execSync } from 'child_process';
-import { PrismaClient } from '@prisma/client';
+import prisma from './lib/prisma';
 import bcrypt from 'bcryptjs';
 
 // Load environment variables
 dotenv.config();
-
-const prisma = new PrismaClient();
 
 // Function to seed admin user
 async function seedAdmin() {

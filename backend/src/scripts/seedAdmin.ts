@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
 
 async function seedAdmin() {
   try {
@@ -40,9 +38,8 @@ async function seedAdmin() {
   } catch (error) {
     console.error('Greška pri kreiranju admin korisnika:', error);
     throw error;
-  } finally {
-    await prisma.$disconnect();
   }
+  // Don't disconnect - we're using singleton
 }
 
 seedAdmin();
