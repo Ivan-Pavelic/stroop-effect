@@ -103,18 +103,60 @@ app.use('/api/admin', adminRoutes);
 async function startServer() {
   if (process.env.NODE_ENV === 'production' || process.env.RUN_MIGRATIONS === 'true') {
     console.log('Running Prisma migrations...');
+    
+    // Prepare connection string for migrations
+    // Migrations need direct connection, not pooled
+    const originalDbUrl = process.env.DATABASE_URL || '';
+    let migrationDbUrl = originalDbUrl;
+    
+    // Remove pooling parameters for migrations (they need direct connection)
+    if (migrationDbUrl) {
+      try {
+        const url = new URL(migrationDbUrl);
+        // Remove pooling parameters - migrations need direct connection
+        url.searchParams.delete('pgbouncer');
+        url.searchParams.delete('connection_limit');
+        migrationDbUrl = url.toString();
+        
+        // Temporarily set DATABASE_URL for migrations
+        process.env.DATABASE_URL = migrationDbUrl;
+        console.log('Using direct connection for migrations (without pooling)');
+      } catch (error) {
+        console.warn('Could not parse DATABASE_URL for migrations, using as-is');
+      }
+    }
+    
     try {
-      execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+      execSync('npx prisma migrate deploy', { 
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          DATABASE_URL: migrationDbUrl
+        }
+      });
       console.log('✅ Migrations completed successfully');
     } catch (error: any) {
       console.error('❌ Migration failed:', error.message);
       // Don't exit - allow server to start even if migrations fail
       // This allows you to fix migration issues without breaking the deployment
+    } finally {
+      // Restore original DATABASE_URL
+      if (originalDbUrl) {
+        process.env.DATABASE_URL = originalDbUrl;
+      }
     }
+
+    // Wait a bit for connection to stabilize
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Seed admin user after migrations
     console.log('Seeding admin user...');
-    await seedAdmin();
+    try {
+      await seedAdmin();
+    } catch (error: any) {
+      console.error('❌ Admin seeding failed:', error.message);
+      // Don't exit - server can still start
+    }
   }
 
   // Start server after migrations and seeding complete
