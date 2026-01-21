@@ -1,9 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { execSync } from 'child_process';
 
 // Load environment variables
 dotenv.config();
+
+// Run migrations on startup (production only)
+if (process.env.NODE_ENV === 'production' || process.env.RUN_MIGRATIONS === 'true') {
+  console.log('Running Prisma migrations...');
+  try {
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    console.log('✅ Migrations completed successfully');
+  } catch (error: any) {
+    console.error('❌ Migration failed:', error.message);
+    // Don't exit - allow server to start even if migrations fail
+    // This allows you to fix migration issues without breaking the deployment
+  }
+}
 
 // Import routes
 import authRoutes from './routes/auth';
