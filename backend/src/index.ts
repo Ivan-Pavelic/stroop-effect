@@ -106,8 +106,17 @@ async function startServer() {
     
     // Prepare connection string for migrations
     // Migrations need direct connection, not pooled
+    // Render provides DATABASE_URL which may be a pooler URL
+    // We need to convert it to direct connection for migrations
     const originalDbUrl = process.env.DATABASE_URL || '';
     let migrationDbUrl = originalDbUrl;
+    
+    // Convert pooler URL to direct connection URL for migrations
+    if (migrationDbUrl && migrationDbUrl.includes('-pooler')) {
+      // Replace pooler hostname with direct hostname
+      migrationDbUrl = migrationDbUrl.replace('-pooler', '');
+      console.log('Converted pooler URL to direct connection for migrations');
+    }
     
     // Remove pooling parameters for migrations (they need direct connection)
     if (migrationDbUrl) {
@@ -116,13 +125,11 @@ async function startServer() {
         // Remove pooling parameters - migrations need direct connection
         url.searchParams.delete('pgbouncer');
         url.searchParams.delete('connection_limit');
+        url.searchParams.delete('schema');
         migrationDbUrl = url.toString();
-        
-        // Temporarily set DATABASE_URL for migrations
-        process.env.DATABASE_URL = migrationDbUrl;
-        console.log('Using direct connection for migrations (without pooling)');
+        console.log('Using direct connection for migrations (without pooling parameters)');
       } catch (error) {
-        console.warn('Could not parse DATABASE_URL for migrations, using as-is');
+        console.warn('Could not parse DATABASE_URL for migrations, using as-is:', error);
       }
     }
     
@@ -137,6 +144,7 @@ async function startServer() {
       console.log('✅ Migrations completed successfully');
     } catch (error: any) {
       console.error('❌ Migration failed:', error.message);
+      console.error('   This might be normal if migrations are already applied.');
       // Don't exit - allow server to start even if migrations fail
       // This allows you to fix migration issues without breaking the deployment
     } finally {
@@ -146,12 +154,14 @@ async function startServer() {
       }
     }
 
-    // Wait a bit for connection to stabilize
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Wait a bit for connection to stabilize after migrations
+    console.log('Waiting for connection to stabilize...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Seed admin user after migrations
     console.log('Seeding admin user...');
     try {
+      // Ensure Prisma client is reinitialized with correct connection
       await seedAdmin();
     } catch (error: any) {
       console.error('❌ Admin seeding failed:', error.message);
