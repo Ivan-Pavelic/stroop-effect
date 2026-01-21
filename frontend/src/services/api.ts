@@ -56,6 +56,17 @@ export const gameAPI = {
     avgTime: number;
     roundTimes: number[];
     answers: boolean[];
+    trials?: Array<{
+      isCongruent: boolean;
+      wordText: string;
+      displayColor: string;
+      correctAnswer: string;
+      userAnswer: string;
+      isCorrect: boolean;
+      reactionTime: number;
+    }>;
+    congruentAccuracy?: number;
+    incongruentAccuracy?: number;
   }) => fetchAPI('/game/result', {
     method: 'POST',
     body: JSON.stringify(gameData),
@@ -76,10 +87,13 @@ export const leaderboardAPI = {
 // AI API
 export const aiAPI = {
   analyzePerformance: (gameData: {
-    accuracy: number;
-    avgTime: number;
+    corr_mean?: number;
+    rt_mean?: number;
+    age?: number;
+    sex?: number;
+    timeofday?: number;
     roundTimes: number[];
-    answers: boolean[];
+    answers: number[]; // 0 or 1 for incorrect/correct
     totalRounds: number;
   }) => fetchAPI('/ai/analyze', {
     method: 'POST',
