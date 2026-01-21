@@ -289,10 +289,11 @@ async function startServer() {
         console.error('   This might be normal if migrations are already applied.');
       }
       // Don't exit - allow server to start even if migrations fail
-    } finally {
-      // Restore original DATABASE_URL
-      if (originalDbUrl) {
-        process.env.DATABASE_URL = originalDbUrl;
+      } finally {
+        // Restore original DATABASE_URL
+        if (originalDbUrl) {
+          process.env.DATABASE_URL = originalDbUrl;
+        }
       }
     }
 
