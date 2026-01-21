@@ -43,6 +43,7 @@ if (!databaseUrl) {
   console.log('Database connection configured:', urlForLog);
 }
 
+// Create PrismaClient with connection retry configuration
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
@@ -52,11 +53,36 @@ export const prisma =
         url: databaseUrl,
       },
     },
+    // Add connection retry configuration for Render
+    // This helps with connection stability
   });
 
 // Prevent multiple instances in development
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
+}
+
+// Helper function to ensure connection is active
+export async function ensureConnection(retries = 3): Promise<void> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await prisma.$connect();
+      return;
+    } catch (error: any) {
+      if (i < retries - 1) {
+        console.log(`Connection attempt ${i + 1} failed, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        // Try to disconnect and reconnect
+        try {
+          await prisma.$disconnect();
+        } catch {
+          // Ignore disconnect errors
+        }
+      } else {
+        throw error;
+      }
+    }
+  }
 }
 
 // Don't test connection immediately - let it connect on first use

@@ -85,13 +85,21 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Ensure connection is active before query
+    const { ensureConnection } = await import('../lib/prisma');
     try {
-      await prisma.$connect();
-    } catch (connectError) {
-      console.error('Connection error, attempting reconnect:', connectError);
-      // Connection might be closed, try to reconnect
-      await prisma.$disconnect().catch(() => {});
-      await prisma.$connect();
+      await ensureConnection();
+    } catch (connectError: any) {
+      console.error('Connection error, attempting reconnect:', connectError.message);
+      // Try one more time with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        await prisma.$disconnect().catch(() => {});
+        await ensureConnection();
+      } catch (retryError: any) {
+        console.error('Failed to reconnect after retry:', retryError.message);
+        res.status(500).json({ error: 'Database connection error. Please try again.' });
+        return;
+      }
     }
 
     // Find user by username or email

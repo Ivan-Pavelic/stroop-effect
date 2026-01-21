@@ -13,6 +13,15 @@ async function seedAdmin() {
   try {
     console.log('Checking for admin user...');
     
+    // Ensure connection is active before querying
+    const { ensureConnection } = await import('./lib/prisma');
+    try {
+      await ensureConnection();
+    } catch (error: any) {
+      console.error('Failed to establish database connection:', error.message);
+      throw error;
+    }
+    
     // Check if admin user already exists
     const existingAdmin = await prisma.user.findUnique({
       where: { username: 'admin' }
