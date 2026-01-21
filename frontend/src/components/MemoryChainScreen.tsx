@@ -4,14 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 
 interface MemoryChainScreenProps {
-  onGameEnd: (score: number, level: number, time: number) => void;
+  round: number;
+  totalRounds: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  onAnswer: (correct: boolean) => void;
+  streak?: number;
 }
 
 type Phase = "intro" | "display" | "input" | "result";
 
-export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
+export function MemoryChainScreen({ round, totalRounds, difficulty, onAnswer, streak }: MemoryChainScreenProps) {
   // ===== GAME STATE =====
-  const [level, setLevel] = useState<number>(1);
+  // Početni level ovisi o težini
+  const getInitialLevel = () => {
+    if (difficulty === 'easy') return 1;
+    if (difficulty === 'medium') return 3;
+    return 7;
+  };
+  const [level, setLevel] = useState<number>(getInitialLevel());
+  const [showIntro, setShowIntro] = useState<boolean>(true);
   const [sequence, setSequence] = useState<number[]>([]);
   const [userSequence, setUserSequence] = useState<number[]>([]);
 
@@ -45,31 +56,45 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
   };
 
   useEffect(() => {
-    const initSeq = generateSequence(1);
-    setLevel(1);
+    let baseLevel = level;
+    let initSeq: number[] = [];
+
+    if (round === 1) {
+      baseLevel = getInitialLevel();
+      setLevel(baseLevel);
+      initSeq = generateSequence(baseLevel);
+    } else {
+      initSeq = generateSequence(level);
+    }
+
     setSequence(initSeq);
     setUserSequence([]);
-    setPhase("intro");
     setChecked(false);
     setAccuracy(0);
-    setNextLevelPreview(1);
-     
-  }, []);
+    setNextLevelPreview(baseLevel);
+
+    if (round === 1 && showIntro) {
+      setPhase("intro");
+    } else {
+      setPhase("display");
+      playDisplay(initSeq);
+    }
+  }, [round, difficulty, showIntro]);
 
   const playDisplay = async (seq: number[]) => {
     setPhase("display");
     setCurrentDisplayDigit(null);
 
-    await sleep(600);
+    await sleep(800);
     if (cancelRef.current) return;
 
     for (let i = 0; i < seq.length; i++) {
       setCurrentDisplayDigit(seq[i]);
-      await sleep(450);
+      await sleep(800);
       if (cancelRef.current) return;
 
       setCurrentDisplayDigit(null);
-      await sleep(350);
+      await sleep(600);
       if (cancelRef.current) return;
     }
 
@@ -79,7 +104,7 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
   // ===== ACTIONS =====
   const handleReady = () => {
     setIsGameStarted(true);
-    if (startTime === 0) setStartTime(Date.now());
+    setShowIntro(false);
     playDisplay(sequence);
   };
 
@@ -95,62 +120,32 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
       const correctCount = next.filter((d, i) => d === sequence[i]).length;
       const acc = sequence.length > 0 ? (correctCount / sequence.length) * 100 : 0;
 
+      // Pravilo levela za sve težine
+      let newLevel = level;
+      if (acc === 100) newLevel = level + 1;
+      else if (acc >= 30) newLevel = level;
+      else newLevel = Math.max(1, level - 1);
+
       setAccuracy(acc);
       setChecked(true);
+      setNextLevelPreview(newLevel);
+      setLevel(newLevel);
 
-      let lv = level;
-      if (acc === 100) lv = level + 1;
-      else if (acc >= 30) lv = level;
-      else lv = Math.max(1, level - 1);
-
-      setNextLevelPreview(lv);
+      // Bitno: ostani u "result" dok user ne klikne gumb
       setPhase("result");
     }
   };
 
-  const handleNext = () => {
-    const lv = nextLevelPreview;
-    const newSeq = generateSequence(lv);
+  // handleNext više nije potreban, runde se kontroliraju iz parenta
+  const handleNext = () => {};
 
-    setLevel(lv);
-    setSequence(newSeq);
-    setUserSequence([]);
-    setChecked(false);
-    setAccuracy(0);
-    setCurrentDisplayDigit(null);
+  // Reset se radi iz parenta
+  const handleReset = () => {};
 
-    playDisplay(newSeq);
-  };
-
-  const handleReset = () => {
-    setStartTime(0);
-    setIsGameStarted(false);
-
-    const newSeq = generateSequence(1);
-    setLevel(1);
-    setSequence(newSeq);
-    setUserSequence([]);
-    setChecked(false);
-    setAccuracy(0);
-    setNextLevelPreview(1);
-    setCurrentDisplayDigit(null);
-    setPhase("intro");
-  };
-
-  const handleEnd = () => {
-    const end = Date.now();
-    const safeStart = startTime || end;
-    const totalTime = (end - safeStart) / 1000;
-    onGameEnd(accuracy, level, totalTime);
-  };
+  // End se radi iz parenta
+  const handleEnd = () => {};
 
   // ===== LAYOUT “SLOTOVI” =====
-  // 1) HEADER (razina)
-  const Header = () => (
-    <div className="w-full max-w-5xl h-20 justify-start items-center flex">
-      <div className="text-gray-700 text-3xl font-bold">Razina: {level}</div>
-    </div>
-  );
 
   // 2) NASLOV FAZE (UPAMTI / UNESI / REZULTAT)
   const PhaseTitle = () => {
@@ -178,7 +173,7 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
   if (!isGameStarted && phase === "intro") {
     return (
       <div className="w-full h-full gap-y-20 flex flex-col items-center justify-center">
-        <div className="bg-gray-100 rounded-xl shadow-lg p-8 w-4/5 h-[60%] items-center justify-center flex">
+        <div className="bg-gray-100 rounded-xl shadow-lg p-8 w-4/5 h-70 items-center justify-center flex">
           <div className="flex flex-col gap-5 justify-center h-full w-[90%]">
             <h3 className="text-4xl font-bold text-gray-900 mb-6 text-left">
               UPUTE:
@@ -272,6 +267,7 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
   // RESULT
   if (phase === "result") {
     const correctCount = userSequence.filter((d, i) => d === sequence[i]).length;
+    const isCorrect = accuracy === 100;
 
     return (
       <div className="w-full max-w-5xl h-full flex flex-col items-center gap-40">
@@ -295,35 +291,36 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
             })}
           </div>
         </div>
-
         <div className="flex flex-col items-center gap-6">
           <Button
-            onClick={handleNext}
+            onClick={() => {
+              onAnswer(isCorrect);
+            }}
             className="h-24 w-72 bg-green-600 hover:bg-green-700 text-white text-3xl font-bold rounded-xl shadow-xl hover:shadow-2xl transition-shadow
                        focus:outline-none focus:ring-0 focus-visible:ring-0"
           >
             SLJEDEĆA RAZINA
           </Button>
 
-          <div className="flex items-center justify-center gap-x-5 w-full">
-            <Button
-              onClick={handleReset}
-              variant="outline"
-              className="h-16 w-1/2 px-12 border-2 border-red-300 hover:bg-red-50 text-red-600 text-2xl font-bold rounded-xl
-                         focus:outline-none focus:ring-0 focus-visible:ring-0"
-            >
-              RESET
-            </Button>
-
-            <Button
-              onClick={handleEnd}
-              variant="outline"
-              className="h-16 w-1/2 px-12 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 text-2xl font-bold rounded-xl
-                         focus:outline-none focus:ring-0 focus-visible:ring-0"
-            >
-              ZAVRŠI
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Reset: vrati na početni level, showIntro, očisti sve
+              const baseLevel = getInitialLevel();
+              setLevel(baseLevel);
+              setShowIntro(true);
+              setPhase("intro");
+              setSequence([]);
+              setUserSequence([]);
+              setChecked(false);
+              setAccuracy(0);
+              setNextLevelPreview(baseLevel);
+            }}
+            className="h-16 w-1/2 px-12 border-2 border-red-300 hover:bg-red-50 text-red-600 text-2xl font-bold rounded-xl
+                       focus:outline-none focus:ring-0 focus-visible:ring-0 mt-4"
+          >
+            ISPOČETKA
+          </Button>
         </div>
       </div>
     );
@@ -335,26 +332,33 @@ export function MemoryChainScreen({ onGameEnd }: MemoryChainScreenProps) {
 
   // ===== RENDER =====
   return (
-    <div className="h-screen w-full px-8  bg-gradient-to-b from-white to-gray-50">
-      <div className="w-full h-full flex flex-col items-center justify-center gap-10">
-        {/* 1) Razina */}
-        <div className="flex justify-center w-full mt-10">
-          <Header />
-        </div>
-
-        {/* 2) Naslov faze (UPAMTI/UNESI/REZULTAT) */}
-        <div className="flex justify-center w-full ">
-          <PhaseTitle />
-        </div>
-
-
-
-        {/* 4) Sadržaj */}
-        <div className="w-full h-full justify-center items-center flex  flex-col ">
-          <PhaseContent />
-        </div>
-      </div>
+    <div className="flex flex-col min-h-screen items-center px-8 bg-gradient-to-b from-white to-gray-50 gap-y-10">
+  {/* Progress Bar */}
+  <div className="w-full max-w-md">
+    <div className="flex justify-between text-gray-500 text-lg mb-2">
+      <span>Rudna {round} od {totalRounds}</span>
+      {typeof streak === "number" && streak > 1 && (
+        <span className="text-orange-500">🔥 {streak} streak!</span>
+      )}
     </div>
+    <div className="w-full bg-gray-200 rounded-full h-3">
+      <div
+        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+        style={{ width: `${(round / totalRounds) * 100}%` }}
+      />
+    </div>
+  </div>
+
+  {/* Title */}
+  <div className="flex justify-center w-full h-20 items-center">
+    <PhaseTitle />
+  </div>
+
+  {/* Content (uzima ostatak, ali gap ostaje vidljiv) */}
+  <div className="w-full flex grow items-center justify-center">
+    <PhaseContent />
+  </div>
+</div>
 
   );
 }

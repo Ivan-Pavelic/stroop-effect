@@ -160,14 +160,11 @@ const handleAnswer = (correct: boolean) => {
       
       {screen === 'game' && gameType === 'memory' && (
         <MemoryChainScreen
-          onGameEnd={(score, level, time) => {
-            setGameState(prev => ({
-              ...prev,
-              score: Math.round(score),
-              streak: level,
-            }));
-            setScreen('results');
-          }}
+          round={gameState.currentRound}
+          totalRounds={settings.rounds}
+          difficulty="easy"
+          onAnswer={handleAnswer}
+          streak={gameState.streak}
         />
       )}
       
