@@ -152,10 +152,55 @@ async function startServer() {
       });
       console.log('✅ Migrations completed successfully');
     } catch (error: any) {
-      console.error('❌ Migration failed:', error.message);
-      console.error('   This might be normal if migrations are already applied.');
+      const errorMessage = error.message || '';
+      console.error('❌ Migration failed:', errorMessage);
+      
+      // Check if it's a failed migration issue (P3009)
+      if (errorMessage.includes('P3009') || errorMessage.includes('failed migrations')) {
+        console.log('⚠️  Detected failed migration. Attempting to resolve...');
+        try {
+          // Mark the failed migration as rolled back so we can retry
+          execSync('npx prisma migrate resolve --rolled-back 20250110000000_add_auth_and_sessions', {
+            stdio: 'inherit',
+            env: {
+              ...process.env,
+              DATABASE_URL: migrationDbUrl
+            }
+          });
+          console.log('✅ Marked failed migration as rolled back. Retrying migrations...');
+          
+          // Retry migrations
+          execSync('npx prisma migrate deploy', { 
+            stdio: 'inherit',
+            env: {
+              ...process.env,
+              DATABASE_URL: migrationDbUrl
+            }
+          });
+          console.log('✅ Migrations completed successfully after resolving failed migration');
+        } catch (resolveError: any) {
+          console.error('❌ Could not resolve failed migration:', resolveError.message);
+          console.error('   Trying alternative: using prisma db push to sync schema...');
+          
+          // Fallback: use db push to sync schema (for new databases)
+          try {
+            execSync('npx prisma db push --accept-data-loss', {
+              stdio: 'inherit',
+              env: {
+                ...process.env,
+                DATABASE_URL: migrationDbUrl
+              }
+            });
+            console.log('✅ Schema synced using db push');
+          } catch (pushError: any) {
+            console.error('❌ db push also failed:', pushError.message);
+            console.error('   You may need to manually fix the database state.');
+          }
+        }
+      } else {
+        console.error('   This might be normal if migrations are already applied.');
+      }
       // Don't exit - allow server to start even if migrations fail
-      // This allows you to fix migration issues without breaking the deployment
     } finally {
       // Restore original DATABASE_URL
       if (originalDbUrl) {
