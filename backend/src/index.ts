@@ -84,6 +84,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Stroop Test API is running' });
 });
 
+// Admin seeding endpoint (for manual admin creation if needed)
+app.post('/api/admin/seed', async (req, res) => {
+  try {
+    await seedAdmin();
+    res.json({ message: 'Admin seeding completed. Check logs for details.' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/game', gameRoutes);
