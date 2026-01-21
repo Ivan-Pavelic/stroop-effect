@@ -5,35 +5,31 @@ import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// For Render PostgreSQL, we need to handle connection pooling properly
-// Render uses PgBouncer for connection pooling
+// For Render PostgreSQL, use direct connection
+// Connection pooling can cause issues, so we'll use direct connection
 let databaseUrl = process.env.DATABASE_URL || '';
 
-// Use pooler URL if explicitly provided (Render sometimes provides separate pooler URL)
-if (process.env.DATABASE_POOLER_URL) {
-  databaseUrl = process.env.DATABASE_POOLER_URL;
-  console.log('Using explicit database pooler URL');
-} else if (databaseUrl) {
-  // Parse URL to check if it already has query parameters
+// Convert pooler URL to direct connection if needed
+// Render provides pooler URLs but migrations and some operations need direct connection
+if (databaseUrl && databaseUrl.includes('-pooler')) {
+  // Replace pooler hostname with direct hostname
+  databaseUrl = databaseUrl.replace('-pooler', '');
+  console.log('Converted pooler URL to direct connection');
+}
+
+// Remove any pooling parameters that might cause issues
+if (databaseUrl) {
   try {
     const url = new URL(databaseUrl);
     const params = url.searchParams;
     
-    // Add Prisma-specific parameters for connection pooling
-    // These are needed for PgBouncer transaction mode
-    if (!params.has('pgbouncer')) {
-      params.set('pgbouncer', 'true');
-    }
-    if (!params.has('connection_limit')) {
-      params.set('connection_limit', '1');
-    }
-    // Add schema parameter for Prisma migrations (if not present)
-    if (!params.has('schema') && !params.has('schema')) {
-      params.set('schema', 'public');
-    }
+    // Remove pooling parameters - use direct connection
+    params.delete('pgbouncer');
+    params.delete('connection_limit');
     
+    // Keep schema if present, but don't add if not needed
     databaseUrl = url.toString();
-    console.log('Configured DATABASE_URL with connection pooling parameters');
+    console.log('Using direct database connection (pooling disabled)');
   } catch (error) {
     console.warn('Could not parse DATABASE_URL, using as-is:', error);
   }
