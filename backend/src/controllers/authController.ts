@@ -84,16 +84,38 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Ensure connection is active before query
+    try {
+      await prisma.$connect();
+    } catch (connectError) {
+      console.error('Connection error, attempting reconnect:', connectError);
+      // Connection might be closed, try to reconnect
+      await prisma.$disconnect().catch(() => {});
+      await prisma.$connect();
+    }
+
     // Find user by username or email
     let user = null;
     if (username) {
       user = await prisma.user.findUnique({
         where: { username }
+      }).catch(async (error) => {
+        console.error('Database query error:', error);
+        // Try reconnecting once more
+        await prisma.$disconnect().catch(() => {});
+        await prisma.$connect();
+        return prisma.user.findUnique({ where: { username } });
       });
       console.log('User lookup by username:', username, user ? 'found' : 'not found');
     } else if (email) {
       user = await prisma.user.findUnique({
         where: { email }
+      }).catch(async (error) => {
+        console.error('Database query error:', error);
+        // Try reconnecting once more
+        await prisma.$disconnect().catch(() => {});
+        await prisma.$connect();
+        return prisma.user.findUnique({ where: { email } });
       });
       console.log('User lookup by email:', email, user ? 'found' : 'not found');
     } else {
