@@ -79,6 +79,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, password }: AuthRequest = req.body;
 
+    console.log('Login attempt:', { username, email, hasPassword: !!password });
+
     if (!password) {
       res.status(400).json({ error: 'Lozinka je obavezna' });
       return;
@@ -90,25 +92,30 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       user = await prisma.user.findUnique({
         where: { username }
       });
+      console.log('User lookup by username:', username, user ? 'found' : 'not found');
     } else if (email) {
       user = await prisma.user.findUnique({
         where: { email }
       });
+      console.log('User lookup by email:', email, user ? 'found' : 'not found');
     } else {
       res.status(400).json({ error: 'Korisničko ime ili email je obavezan' });
       return;
     }
 
     if (!user) {
-      res.status(401).json({ error: 'Nevažeće korisničko ime ili lozinka' });
+      console.log('Login failed: User not found');
+      res.status(401).json({ error: 'Neispravno korisničko ime ili lozinka' });
       return;
     }
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.lozinka_hash);
+    console.log('Password check:', isValidPassword ? 'valid' : 'invalid');
 
     if (!isValidPassword) {
-      res.status(401).json({ error: 'Nevažeće korisničko ime ili lozinka' });
+      console.log('Login failed: Invalid password');
+      res.status(401).json({ error: 'Neispravno korisničko ime ili lozinka' });
       return;
     }
 

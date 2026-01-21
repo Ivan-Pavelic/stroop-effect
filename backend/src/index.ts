@@ -13,6 +13,8 @@ const prisma = new PrismaClient();
 // Function to seed admin user
 async function seedAdmin() {
   try {
+    console.log('Checking for admin user...');
+    
     // Check if admin user already exists
     const existingAdmin = await prisma.user.findUnique({
       where: { username: 'admin' }
@@ -20,15 +22,18 @@ async function seedAdmin() {
 
     if (existingAdmin) {
       console.log('✅ Admin korisnik već postoji');
+      console.log(`   ID: ${existingAdmin.id}, Email: ${existingAdmin.email}, Role: ${existingAdmin.role}`);
       return;
     }
+
+    console.log('Admin user not found. Creating...');
 
     // Hash password for admin (password: admin)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash('admin', salt);
 
     // Create admin user
-    await prisma.user.create({
+    const admin = await prisma.user.create({
       data: {
         ime: 'Admin',
         prezime: 'Korisnik',
@@ -42,33 +47,20 @@ async function seedAdmin() {
     });
 
     console.log('✅ Admin korisnik uspješno kreiran:');
+    console.log(`   ID: ${admin.id}`);
     console.log('   Username: admin');
     console.log('   Password: admin');
     console.log('   Email: admin@stroop.test');
+    console.log(`   Role: ${admin.role}`);
   } catch (error: any) {
-    console.error('❌ Greška pri kreiranju admin korisnika:', error.message);
+    console.error('❌ Greška pri kreiranju admin korisnika:', error);
+    console.error('   Error details:', error.message);
+    if (error.stack) {
+      console.error('   Stack:', error.stack);
+    }
     // Don't throw - allow server to continue
   }
 }
-
-// Run migrations and seed admin on startup (production only)
-(async () => {
-  if (process.env.NODE_ENV === 'production' || process.env.RUN_MIGRATIONS === 'true') {
-    console.log('Running Prisma migrations...');
-    try {
-      execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-      console.log('✅ Migrations completed successfully');
-    } catch (error: any) {
-      console.error('❌ Migration failed:', error.message);
-      // Don't exit - allow server to start even if migrations fail
-      // This allows you to fix migration issues without breaking the deployment
-    }
-
-    // Seed admin user after migrations
-    console.log('Seeding admin user...');
-    await seedAdmin();
-  }
-})();
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -99,9 +91,34 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+// Run migrations and seed admin on startup (production only), then start server
+async function startServer() {
+  if (process.env.NODE_ENV === 'production' || process.env.RUN_MIGRATIONS === 'true') {
+    console.log('Running Prisma migrations...');
+    try {
+      execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+      console.log('✅ Migrations completed successfully');
+    } catch (error: any) {
+      console.error('❌ Migration failed:', error.message);
+      // Don't exit - allow server to start even if migrations fail
+      // This allows you to fix migration issues without breaking the deployment
+    }
+
+    // Seed admin user after migrations
+    console.log('Seeding admin user...');
+    await seedAdmin();
+  }
+
+  // Start server after migrations and seeding complete
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+// Start the server
+startServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
 
 export default app;
