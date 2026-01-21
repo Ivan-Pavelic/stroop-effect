@@ -108,10 +108,32 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Helper function to check if database tables exist
+async function checkTablesExist(): Promise<boolean> {
+  try {
+    const result = await prisma.$queryRaw<Array<{ tablename: string }>>`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'users';
+    `;
+    return result.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 // Run migrations and seed admin on startup (production only), then start server
 async function startServer() {
   if (process.env.NODE_ENV === 'production' || process.env.RUN_MIGRATIONS === 'true') {
-    console.log('Running Prisma migrations...');
+    // First, check if tables exist
+    console.log('Checking if database tables exist...');
+    let tablesExist = false;
+    try {
+      const { ensureConnection } = await import('./lib/prisma');
+      await ensureConnection();
+      tablesExist = await checkTablesExist();
+      console.log(`Database tables exist: ${tablesExist}`);
+    } catch (error: any) {
+      console.warn('Could not check tables, assuming they need to be created:', error.message);
+    }
     
     // Prepare connection string for migrations
     // Migrations need direct connection, not pooled
@@ -141,6 +163,48 @@ async function startServer() {
         console.warn('Could not parse DATABASE_URL for migrations, using as-is:', error);
       }
     }
+    
+    // If tables don't exist, use db push instead of migrations (faster for new databases)
+    if (!tablesExist) {
+      console.log('⚠️  Tables do not exist. Using db push to create schema (faster for new databases)...');
+      try {
+        execSync('npx prisma db push --accept-data-loss --skip-generate', {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            DATABASE_URL: migrationDbUrl
+          }
+        });
+        console.log('✅ Schema created using db push');
+        
+        // Mark migrations as applied so future deployments use migrate deploy
+        try {
+          console.log('Marking migrations as applied...');
+          execSync('npx prisma migrate resolve --applied 20251206220734_init', {
+            stdio: 'inherit',
+            env: {
+              ...process.env,
+              DATABASE_URL: migrationDbUrl
+            }
+          });
+          execSync('npx prisma migrate resolve --applied 20250110000000_add_auth_and_sessions', {
+            stdio: 'inherit',
+            env: {
+              ...process.env,
+              DATABASE_URL: migrationDbUrl
+            }
+          });
+          console.log('✅ Migrations marked as applied');
+        } catch (markError) {
+          console.warn('⚠️  Could not mark migrations as applied, but schema is created');
+        }
+      } catch (pushError: any) {
+        console.error('❌ db push failed:', pushError.message);
+        console.error('   Falling back to migrations...');
+        // Continue to migration attempt below
+      }
+    } else {
+      console.log('Running Prisma migrations...');
     
     try {
       execSync('npx prisma migrate deploy', { 
