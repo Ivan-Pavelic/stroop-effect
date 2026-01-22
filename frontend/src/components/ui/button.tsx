@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'outline' | 'ghost';
-  size?: 'default' | 'icon';
+  size?: 'default' | 'icon' | 'sm';
 }
 
 export function Button({ 
@@ -23,6 +23,7 @@ export function Button({
           "hover:bg-accent hover:text-accent-foreground": variant === 'ghost',
           "h-10 px-4 py-2": size === 'default',
           "h-10 w-10": size === 'icon',
+          "h-8 px-3 text-xs": size === 'sm',
         },
         className
       )}
