@@ -250,35 +250,53 @@ export function GameScreen({
         </AnimatePresence>
       </div>
 
-      {/* Answer Buttons - Dynamic grid based on number of colors */}
+      {/* Answer Buttons - Dynamic grid based on number of colors, centered for odd numbers */}
       <motion.div
         className={cn(
           "w-full max-w-2xl",
-          availableColors.length <= 4 ? "grid grid-cols-2" : 
-          availableColors.length <= 6 ? "grid grid-cols-3" : "grid grid-cols-4",
+          "flex flex-wrap justify-center items-center",
           "gap-3 sm:gap-4"
         )}
         initial={skipAnimation ? undefined : { opacity: 0, y: 20 }}
         animate={skipAnimation ? undefined : { opacity: 1, y: 0 }}
         transition={springTransition}
       >
-        {options.map((colorName) => (
-          <Button
-            key={colorName}
-            onClick={() => handleAnswer(colorName)}
-            className={cn(
-              "h-14 sm:h-16 md:h-20",
-              "text-white text-sm sm:text-base md:text-lg lg:text-xl font-semibold",
-              "rounded-xl shadow-md",
-              "transition-all duration-150",
-              "active:scale-95",
-              "touch-manipulation",
-              getButtonStyles(colorName)
-            )}
-          >
-            {colorName}
-          </Button>
-        ))}
+        {options.map((colorName) => {
+          // Calculate button width based on number of colors
+          // For odd numbers, buttons will be centered automatically with justify-center
+          const getButtonWidth = () => {
+            const numColors = availableColors.length;
+            if (numColors <= 4) {
+              // 2 columns: 50% width minus gap
+              return "w-[calc(50%-0.375rem)] sm:w-[calc(50%-0.5rem)]";
+            } else if (numColors <= 6) {
+              // 3 columns: 33.333% width minus gap
+              return "w-[calc(33.333%-0.5rem)] sm:w-[calc(33.333%-0.667rem)]";
+            } else {
+              // 4 columns: 25% width minus gap
+              return "w-[calc(25%-0.5625rem)] sm:w-[calc(25%-0.75rem)]";
+            }
+          };
+          
+          return (
+            <Button
+              key={colorName}
+              onClick={() => handleAnswer(colorName)}
+              className={cn(
+                getButtonWidth(),
+                "h-14 sm:h-16 md:h-20",
+                "text-white text-sm sm:text-base md:text-lg lg:text-xl font-semibold",
+                "rounded-xl shadow-md",
+                "transition-all duration-150",
+                "active:scale-95",
+                "touch-manipulation",
+                getButtonStyles(colorName)
+              )}
+            >
+              {colorName}
+            </Button>
+          );
+        })}
       </motion.div>
     </div>
   );
