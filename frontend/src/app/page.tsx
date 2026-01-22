@@ -9,7 +9,6 @@ import { MainMenu } from "@/components/MainMenu";
 import { ModeSelection } from "@/components/ModeSelection";
 import { GameScreen } from "@/components/GameScreen";
 import { MemoryChainScreen } from "@/components/MemoryChainScreen";
-import { FeedbackScreen } from "@/components/FeedbackScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { Leaderboard } from "@/components/Leaderboard";
 import { AdminDashboard } from "@/components/AdminDashboard";
@@ -22,7 +21,6 @@ type Screen =
   | "mode-memory"
   | "game-stroop"
   | "game-memory"
-  | "feedback"
   | "results"
   | "leaderboard"
   | "admin";
@@ -58,7 +56,6 @@ export default function Home() {
   const [trialInBatch, setTrialInBatch] = useState<number>(1);
   const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
-  const [lastCorrect, setLastCorrect] = useState<boolean>(false);
 
   // Memory chain state
   const [memoryRound, setMemoryRound] = useState<number>(1);
@@ -121,7 +118,6 @@ export default function Home() {
     setTrialInBatch(1);
     setScore(0);
     setStreak(0);
-    setLastCorrect(false);
     setMemoryRound(1);
   };
 
@@ -138,10 +134,8 @@ export default function Home() {
     if (trial.isCorrect) {
       setScore((prev) => prev + 1);
       setStreak((prev) => prev + 1);
-      setLastCorrect(true);
     } else {
       setStreak(0);
-      setLastCorrect(false);
     }
 
     // Move to next trial
@@ -152,17 +146,9 @@ export default function Home() {
       setTrialInBatch((prev) => prev + 1);
     }
 
-    // Show feedback briefly then continue
-    setScreen("feedback");
+    // Continue directly to next trial (no feedback screen)
+    // Game will end when time runs out
   };
-
-  const handleFeedbackNext = useCallback(() => {
-    if (timeRemaining <= 0) {
-      setScreen("results");
-    } else {
-      setScreen("game-stroop");
-    }
-  }, [timeRemaining]);
 
   // Memory chain handlers
   const startMemoryGame = () => {
@@ -261,16 +247,6 @@ export default function Home() {
             difficulty={memoryDifficulty}
             onAnswer={handleMemoryAnswer}
             streak={streak}
-          />
-        );
-
-      case "feedback":
-        return (
-          <FeedbackScreen
-            correct={lastCorrect}
-            score={score}
-            streak={streak}
-            onNext={handleFeedbackNext}
           />
         );
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
 import { prefersReducedMotion, popInVariants, springTransition } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
@@ -22,12 +23,31 @@ interface GameScreenProps {
   trialInBatch: number;
 }
 
-const COLORS = [
-  { name: "CRVENA", value: "#EF4444", bgClass: "bg-game-red hover:bg-game-red/90 active:bg-game-red/80" },
-  { name: "PLAVA", value: "#3B82F6", bgClass: "bg-game-blue hover:bg-game-blue/90 active:bg-game-blue/80" },
-  { name: "ZELENA", value: "#10B981", bgClass: "bg-game-green hover:bg-game-green/90 active:bg-game-green/80" },
-  { name: "ŽUTA", value: "#EAB308", bgClass: "bg-game-yellow hover:bg-game-yellow/90 active:bg-game-yellow/80" },
+// All available colors - more will be added as series progress
+const ALL_COLORS = [
+  { name: "CRVENA", value: "#EF4444", bgClass: "bg-red-500 hover:bg-red-600 active:bg-red-700" },
+  { name: "PLAVA", value: "#3B82F6", bgClass: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700" },
+  { name: "ZELENA", value: "#10B981", bgClass: "bg-green-500 hover:bg-green-600 active:bg-green-700" },
+  { name: "ŽUTA", value: "#EAB308", bgClass: "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700" },
+  { name: "LJUBIČASTA", value: "#A855F7", bgClass: "bg-purple-500 hover:bg-purple-600 active:bg-purple-700" },
+  { name: "SMEĐA", value: "#A16207", bgClass: "bg-amber-700 hover:bg-amber-800 active:bg-amber-900" },
+  { name: "NARANČASTA", value: "#F97316", bgClass: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700" },
+  { name: "ROZA", value: "#EC4899", bgClass: "bg-pink-500 hover:bg-pink-600 active:bg-pink-700" },
 ];
+
+// Get available colors based on current batch (series)
+const getAvailableColors = (batch: number) => {
+  // Series 1: 4 colors (basic)
+  if (batch === 1) return ALL_COLORS.slice(0, 4);
+  // Series 2: 5 colors (add ljubičasta)
+  if (batch === 2) return ALL_COLORS.slice(0, 5);
+  // Series 3: 6 colors (add smeđa)
+  if (batch === 3) return ALL_COLORS.slice(0, 6);
+  // Series 4: 7 colors (add narančasta)
+  if (batch === 4) return ALL_COLORS.slice(0, 7);
+  // Series 5+: All 8 colors
+  return ALL_COLORS;
+};
 
 interface WordDisplay {
   text: string;
@@ -45,17 +65,30 @@ export function GameScreen({
   const [word, setWord] = useState<WordDisplay | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [trialStartTime, setTrialStartTime] = useState<number>(Date.now());
+  const [showIntro, setShowIntro] = useState<boolean>(true);
+  const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
   const skipAnimation = prefersReducedMotion();
 
+  const availableColors = getAvailableColors(currentBatch);
+  
+  // Calculate difficulty: reduce congruent percentage as series progress
+  const getCongruentChance = () => {
+    if (currentBatch === 1) return 0.3; // 30% congruent in series 1
+    if (currentBatch === 2) return 0.25; // 25% in series 2
+    if (currentBatch === 3) return 0.2; // 20% in series 3
+    if (currentBatch === 4) return 0.15; // 15% in series 4
+    return 0.1; // 10% in series 5+
+  };
+
   const generateTrial = () => {
-    const wordColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-    const isCongruent = Math.random() < 0.3;
+    const wordColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+    const isCongruent = Math.random() < getCongruentChance();
 
     let displayColor;
     if (isCongruent) {
       displayColor = wordColor;
     } else {
-      const otherColors = COLORS.filter((c) => c.name !== wordColor.name);
+      const otherColors = availableColors.filter((c) => c.name !== wordColor.name);
       displayColor = otherColors[Math.floor(Math.random() * otherColors.length)];
     }
 
@@ -66,14 +99,23 @@ export function GameScreen({
       isCongruent,
     });
 
-    const shuffled = [...COLORS].sort(() => Math.random() - 0.5);
+    // Show all available colors as options (shuffled)
+    const shuffled = [...availableColors].sort(() => Math.random() - 0.5);
     setOptions(shuffled.map((c) => c.name));
     setTrialStartTime(Date.now());
   };
 
   useEffect(() => {
+    if (isGameStarted && !showIntro) {
+      generateTrial();
+    }
+  }, [trialInBatch, currentBatch, isGameStarted, showIntro]);
+
+  const handleReady = () => {
+    setIsGameStarted(true);
+    setShowIntro(false);
     generateTrial();
-  }, [trialInBatch]);
+  };
 
   const handleAnswer = (selectedColor: string) => {
     if (!word) return;
@@ -93,7 +135,7 @@ export function GameScreen({
   };
 
   const getButtonStyles = (colorName: string) => {
-    const color = COLORS.find((c) => c.name === colorName);
+    const color = ALL_COLORS.find((c) => c.name === colorName);
     return color?.bgClass || "bg-muted hover:bg-muted/90";
   };
 
@@ -103,9 +145,71 @@ export function GameScreen({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  if (!word) return null;
-
   const progressValue = (timeRemaining / 60) * 100;
+
+  // Intro Screen
+  if (!isGameStarted || showIntro) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 md:px-8 py-6 sm:py-8 bg-background gap-8 md:gap-12">
+        <motion.div
+          className="w-full max-w-2xl flex flex-col items-center gap-8 md:gap-12"
+          initial={skipAnimation ? undefined : { opacity: 0, y: 20 }}
+          animate={skipAnimation ? undefined : { opacity: 1, y: 0 }}
+          transition={springTransition}
+        >
+          <Card className="w-full shadow-lg">
+            <CardContent className="p-6 md:p-8">
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
+                Stroop Effect - Upute:
+              </h3>
+              <ul className="space-y-4 text-base md:text-lg text-muted-foreground">
+                <li className="flex items-start gap-3">
+                  <span className="text-primary font-bold">1.</span>
+                  <span>
+                    Na ekranu će se pojavljivati <strong className="text-foreground">riječi boja</strong> ispisane u <strong className="text-foreground">različitim bojama</strong>.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-primary font-bold">2.</span>
+                  <span>
+                    Vaš zadatak je odabrati <strong className="text-foreground">boju teksta</strong>, ne riječ koju vidite!
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-primary font-bold">3.</span>
+                  <span>
+                    Kako napredujete kroz serije, igra postaje teža - pojavljuje se više boja i manje kongruentnih zadataka.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-primary font-bold">4.</span>
+                  <span>
+                    Imate <strong className="text-foreground">60 sekundi</strong> da odgovorite na što više zadataka.
+                  </span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Button
+            onClick={handleReady}
+            className={cn(
+              "h-16 md:h-20 px-12 md:px-16",
+              "bg-primary hover:bg-primary/90 text-primary-foreground",
+              "text-2xl md:text-3xl font-bold rounded-2xl",
+              "shadow-xl hover:shadow-2xl",
+              "transition-all duration-300",
+              "btn-press"
+            )}
+          >
+            KRENI
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!word) return null;
 
   return (
     <div className="flex flex-col items-center min-h-screen px-4 sm:px-6 md:px-8 py-6 sm:py-8 bg-background">
@@ -124,16 +228,6 @@ export function GameScreen({
           className="h-2 sm:h-3"
         />
       </div>
-
-      {/* Instructions */}
-      <motion.p
-        className="text-foreground text-base sm:text-lg md:text-xl mb-6 sm:mb-8 font-medium text-center max-w-md"
-        initial={skipAnimation ? undefined : { opacity: 0 }}
-        animate={skipAnimation ? undefined : { opacity: 1 }}
-      >
-        Koja je <span className="font-bold text-primary">BOJA</span> ovog teksta?{" "}
-        <span className="text-muted-foreground">(ne riječ!)</span>
-      </motion.p>
 
       {/* Word Display */}
       <div className="flex-1 flex items-center justify-center mb-8 sm:mb-12 px-4">
@@ -156,9 +250,14 @@ export function GameScreen({
         </AnimatePresence>
       </div>
 
-      {/* Answer Buttons */}
+      {/* Answer Buttons - Dynamic grid based on number of colors */}
       <motion.div
-        className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-lg"
+        className={cn(
+          "w-full max-w-2xl",
+          availableColors.length <= 4 ? "grid grid-cols-2" : 
+          availableColors.length <= 6 ? "grid grid-cols-3" : "grid grid-cols-4",
+          "gap-3 sm:gap-4"
+        )}
         initial={skipAnimation ? undefined : { opacity: 0, y: 20 }}
         animate={skipAnimation ? undefined : { opacity: 1, y: 0 }}
         transition={springTransition}
@@ -169,7 +268,7 @@ export function GameScreen({
             onClick={() => handleAnswer(colorName)}
             className={cn(
               "h-14 sm:h-16 md:h-20",
-              "text-white text-base sm:text-lg md:text-xl lg:text-2xl font-semibold",
+              "text-white text-sm sm:text-base md:text-lg lg:text-xl font-semibold",
               "rounded-xl shadow-md",
               "transition-all duration-150",
               "active:scale-95",
