@@ -2,13 +2,15 @@
 
 import React from "react"
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { QRCode } from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { PageWrapper, AnimatedSection } from "@/components/PageWrapper";
 import { authAPI } from "@/services/api";
 import { prefersReducedMotion, springTransition } from "@/lib/animations";
@@ -29,7 +31,13 @@ export function Login({ onLoginSuccess }: LoginProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showQRPopup, setShowQRPopup] = useState(true);
   const skipAnimation = prefersReducedMotion();
+
+  // Show QR popup on mount
+  useEffect(() => {
+    setShowQRPopup(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +60,92 @@ export function Login({ onLoginSuccess }: LoginProps) {
     }
   };
 
+  const qrUrl = "https://stroop-frontend.onrender.com/";
+
   return (
-    <PageWrapper variant="centered" className="bg-background gap-8 md:gap-12">
+    <>
+      {/* QR Code Popup */}
+      <AnimatePresence>
+        {showQRPopup && (
+          <Dialog open={showQRPopup} onOpenChange={setShowQRPopup}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={springTransition}
+            >
+              <DialogContent className="max-w-md">
+                <DialogClose onClose={() => setShowQRPopup(false)} />
+                <DialogHeader>
+                  <DialogTitle className="text-2xl md:text-3xl font-bold text-center">
+                    📱 Skeniraj QR kod
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <div className="flex flex-col items-center gap-6 py-4">
+                  {/* QR Code */}
+                  <div className="bg-white p-4 rounded-xl shadow-lg flex justify-center">
+                    <QRCode
+                      value={qrUrl}
+                      size={200}
+                      level="H"
+                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                    />
+                  </div>
+
+                  {/* Demo Credentials */}
+                  <div className="w-full space-y-4">
+                    <div className="bg-primary/5 rounded-xl p-4 border-2 border-primary/20">
+                      <p className="text-center text-sm md:text-base text-muted-foreground mb-3">
+                        Pozivamo vas na demonstraciju i isprobavanje igre:
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 bg-background rounded-lg">
+                          <span className="text-sm font-semibold text-foreground">Korisničko ime:</span>
+                          <span className="text-sm font-mono text-primary font-bold">demo.digobr</span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-background rounded-lg">
+                          <span className="text-sm font-semibold text-foreground">Lozinka:</span>
+                          <span className="text-sm font-mono text-primary font-bold">digobr123</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-center text-xs md:text-sm text-muted-foreground">
+                      Skenirajte QR kod ili posjetite:{" "}
+                      <a
+                        href={qrUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-semibold"
+                      >
+                        stroop-frontend.onrender.com
+                      </a>
+                    </p>
+                  </div>
+
+                  {/* Close Button */}
+                  <Button
+                    onClick={() => setShowQRPopup(false)}
+                    className={cn(
+                      "w-full h-12",
+                      "bg-primary hover:bg-primary/90 text-primary-foreground",
+                      "text-base font-semibold rounded-xl",
+                      "shadow-lg hover:shadow-xl",
+                      "transition-all duration-300",
+                      "btn-press"
+                    )}
+                  >
+                    Zatvori
+                  </Button>
+                </div>
+              </DialogContent>
+            </motion.div>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      <PageWrapper variant="centered" className="bg-background gap-8 md:gap-12">
       {/* Header Section */}
       <AnimatedSection className="text-center space-y-4" delay={0}>
         <motion.h1
@@ -170,5 +262,6 @@ export function Login({ onLoginSuccess }: LoginProps) {
         </Card>
       </AnimatedSection>
     </PageWrapper>
+    </>
   );
 }
