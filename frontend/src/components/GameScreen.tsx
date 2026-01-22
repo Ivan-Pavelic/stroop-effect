@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from './ui/button';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { prefersReducedMotion, popInVariants, springTransition } from "@/lib/animations";
+import { cn } from "@/lib/utils";
 
 interface GameScreenProps {
   onTrialComplete: (trial: {
@@ -19,10 +23,10 @@ interface GameScreenProps {
 }
 
 const COLORS = [
-  { name: 'CRVENA', value: '#EF4444', englishName: 'RED' },
-  { name: 'PLAVA', value: '#3B82F6', englishName: 'BLUE' },
-  { name: 'ZELENA', value: '#10B981', englishName: 'GREEN' },
-  { name: 'ŽUTA', value: '#EAB308', englishName: 'YELLOW' },
+  { name: "CRVENA", value: "#EF4444", bgClass: "bg-game-red hover:bg-game-red/90 active:bg-game-red/80" },
+  { name: "PLAVA", value: "#3B82F6", bgClass: "bg-game-blue hover:bg-game-blue/90 active:bg-game-blue/80" },
+  { name: "ZELENA", value: "#10B981", bgClass: "bg-game-green hover:bg-game-green/90 active:bg-game-green/80" },
+  { name: "ŽUTA", value: "#EAB308", bgClass: "bg-game-yellow hover:bg-game-yellow/90 active:bg-game-yellow/80" },
 ];
 
 interface WordDisplay {
@@ -32,40 +36,38 @@ interface WordDisplay {
   isCongruent: boolean;
 }
 
-export function GameScreen({ onTrialComplete, timeRemaining, currentBatch, trialInBatch }: GameScreenProps) {
+export function GameScreen({
+  onTrialComplete,
+  timeRemaining,
+  currentBatch,
+  trialInBatch,
+}: GameScreenProps) {
   const [word, setWord] = useState<WordDisplay | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [trialStartTime, setTrialStartTime] = useState<number>(Date.now());
+  const skipAnimation = prefersReducedMotion();
 
   const generateTrial = () => {
-    // Pick a random word (color name)
     const wordColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-    
-    // Determine if congruent (50% chance) - for Stroop test, we want more incongruent
-    const isCongruent = Math.random() < 0.3; // 30% congruent, 70% incongruent
-    
+    const isCongruent = Math.random() < 0.3;
+
     let displayColor;
     if (isCongruent) {
-      // Congruent: word and color match
       displayColor = wordColor;
     } else {
-      // Incongruent: word and color don't match
-      const otherColors = COLORS.filter(c => c.name !== wordColor.name);
+      const otherColors = COLORS.filter((c) => c.name !== wordColor.name);
       displayColor = otherColors[Math.floor(Math.random() * otherColors.length)];
     }
-    
+
     setWord({
-      text: wordColor.name, // Croatian word displayed
+      text: wordColor.name,
       color: displayColor.value,
-      correctColor: displayColor.name, // Croatian name for correct answer
+      correctColor: displayColor.name,
       isCongruent,
     });
 
-    // Create answer options (shuffle the colors)
     const shuffled = [...COLORS].sort(() => Math.random() - 0.5);
-    setOptions(shuffled.map(c => c.name)); // Croatian names
-    
-    // Reset trial start time
+    setOptions(shuffled.map((c) => c.name));
     setTrialStartTime(Date.now());
   };
 
@@ -75,10 +77,10 @@ export function GameScreen({ onTrialComplete, timeRemaining, currentBatch, trial
 
   const handleAnswer = (selectedColor: string) => {
     if (!word) return;
-    
+
     const reactionTime = Date.now() - trialStartTime;
     const isCorrect = selectedColor === word.correctColor;
-    
+
     onTrialComplete({
       isCongruent: word.isCongruent,
       wordText: word.text,
@@ -90,67 +92,95 @@ export function GameScreen({ onTrialComplete, timeRemaining, currentBatch, trial
     });
   };
 
-  const getButtonColor = (colorName: string) => {
-    switch (colorName) {
-      case 'CRVENA': return 'bg-red-500 hover:bg-red-600 active:bg-red-700';
-      case 'PLAVA': return 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700';
-      case 'ZELENA': return 'bg-green-500 hover:bg-green-600 active:bg-green-700';
-      case 'ŽUTA': return 'bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700';
-      default: return 'bg-gray-500 hover:bg-gray-600 active:bg-gray-700';
-    }
+  const getButtonStyles = (colorName: string) => {
+    const color = COLORS.find((c) => c.name === colorName);
+    return color?.bgClass || "bg-muted hover:bg-muted/90";
   };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (!word) return null;
 
+  const progressValue = (timeRemaining / 60) * 100;
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-12 bg-gradient-to-b from-white to-gray-50">
+    <div className="flex flex-col items-center min-h-screen px-4 sm:px-6 md:px-8 py-6 sm:py-8 bg-background">
       {/* Timer and Progress */}
-      <div className="w-full max-w-md mb-4 sm:mb-6 md:mb-8">
-        <div className="flex flex-col sm:flex-row justify-between text-gray-700 text-sm sm:text-base md:text-lg mb-2 gap-1 sm:gap-0">
-          <span className="font-semibold">Vrijeme: {formatTime(timeRemaining)}</span>
-          <span className="text-gray-600 text-xs sm:text-sm md:text-base">Serija {currentBatch}, Zadatak {trialInBatch}/10</span>
+      <div className="w-full max-w-lg mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm sm:text-base mb-3 gap-1">
+          <span className="font-semibold text-foreground">
+            Vrijeme: {formatTime(timeRemaining)}
+          </span>
+          <span className="text-muted-foreground text-xs sm:text-sm">
+            Serija {currentBatch}, Zadatak {trialInBatch}/10
+          </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
-          <div 
-            className="bg-blue-600 h-2 sm:h-3 rounded-full transition-all duration-300"
-            style={{ width: `${(timeRemaining / 60) * 100}%` }}
-          />
-        </div>
+        <Progress 
+          value={progressValue} 
+          className="h-2 sm:h-3"
+        />
       </div>
 
       {/* Instructions */}
-      <p className="text-gray-700 text-base sm:text-lg md:text-xl mb-4 sm:mb-6 md:mb-8 font-medium px-2 text-center">
-        Koja je BOJA ovog teksta? (ne riječ!)
-      </p>
+      <motion.p
+        className="text-foreground text-base sm:text-lg md:text-xl mb-6 sm:mb-8 font-medium text-center max-w-md"
+        initial={skipAnimation ? undefined : { opacity: 0 }}
+        animate={skipAnimation ? undefined : { opacity: 1 }}
+      >
+        Koja je <span className="font-bold text-primary">BOJA</span> ovog teksta?{" "}
+        <span className="text-muted-foreground">(ne riječ!)</span>
+      </motion.p>
 
       {/* Word Display */}
-      <div className="flex-1 flex items-center justify-center mb-6 sm:mb-8 md:mb-12 px-4">
-        <div
-          className="text-center select-none text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold"
-          style={{ color: word.color }}
-        >
-          {word.text}
-        </div>
+      <div className="flex-1 flex items-center justify-center mb-8 sm:mb-12 px-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${word.text}-${word.color}-${trialInBatch}`}
+            className="text-center select-none"
+            variants={skipAnimation ? undefined : popInVariants}
+            initial={skipAnimation ? undefined : "initial"}
+            animate={skipAnimation ? undefined : "animate"}
+            exit={skipAnimation ? undefined : "exit"}
+          >
+            <span
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold"
+              style={{ color: word.color }}
+            >
+              {word.text}
+            </span>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Answer Buttons */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-lg px-2">
+      <motion.div
+        className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-lg"
+        initial={skipAnimation ? undefined : { opacity: 0, y: 20 }}
+        animate={skipAnimation ? undefined : { opacity: 1, y: 0 }}
+        transition={springTransition}
+      >
         {options.map((colorName) => (
           <Button
             key={colorName}
             onClick={() => handleAnswer(colorName)}
-            className={`h-14 sm:h-16 md:h-20 text-white text-base sm:text-lg md:text-xl lg:text-2xl font-semibold rounded-xl touch-manipulation ${getButtonColor(colorName)}`}
+            className={cn(
+              "h-14 sm:h-16 md:h-20",
+              "text-white text-base sm:text-lg md:text-xl lg:text-2xl font-semibold",
+              "rounded-xl shadow-md",
+              "transition-all duration-150",
+              "active:scale-95",
+              "touch-manipulation",
+              getButtonStyles(colorName)
+            )}
           >
             {colorName}
           </Button>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

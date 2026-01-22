@@ -1,9 +1,36 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { adminAPI } from '@/services/api';
-import { Button } from './ui/button';
-import { UserDetail } from './UserDetail';
+import React from "react"
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { adminAPI } from "@/services/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { PageWrapper, AnimatedSection } from "@/components/PageWrapper";
+import { UserDetail } from "@/components/UserDetail";
+import { prefersReducedMotion, springTransition, staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
+import { cn } from "@/lib/utils";
+import { LogOut, Plus, X, Eye, Trash2, Users } from "lucide-react";
 
 interface User {
   id: number;
@@ -32,14 +59,15 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [error, setError] = useState<string | null>(null);
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUser, setNewUser] = useState({
-    ime: '',
-    prezime: '',
-    email: '',
-    password: '',
-    dob: '',
-    spol: 'M',
-    role: 'USER'
+    ime: "",
+    prezime: "",
+    email: "",
+    password: "",
+    dob: "",
+    spol: "M",
+    role: "USER",
   });
+  const skipAnimation = prefersReducedMotion();
 
   useEffect(() => {
     loadUsers();
@@ -49,18 +77,20 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     try {
       setLoading(true);
       const response = await adminAPI.getAllUsers();
-      // Filter out the default admin user (username === 'admin')
-      const filteredUsers = response.users.filter((user: User) => user.username !== 'admin');
+      const filteredUsers = response.users.filter(
+        (user: User) => user.username !== "admin"
+      );
       setUsers(filteredUsers);
-    } catch (err: any) {
-      setError(err.message || 'Neuspješno učitavanje korisnika');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Neuspješno učitavanje korisnika";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteUser = async (userId: number) => {
-    if (!confirm('Jeste li sigurni da želite obrisati ovog korisnika?')) {
+    if (!confirm("Jeste li sigurni da želite obrisati ovog korisnika?")) {
       return;
     }
 
@@ -70,8 +100,9 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       if (selectedUser?.id === userId) {
         setSelectedUser(null);
       }
-    } catch (err: any) {
-      alert(err.message || 'Neuspješno brisanje korisnika');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Neuspješno brisanje korisnika";
+      alert(errorMessage);
     }
   };
 
@@ -81,17 +112,18 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       await adminAPI.createUser(newUser);
       setShowAddUser(false);
       setNewUser({
-        ime: '',
-        prezime: '',
-        email: '',
-        password: '',
-        dob: '',
-        spol: 'M',
-        role: 'USER'
+        ime: "",
+        prezime: "",
+        email: "",
+        password: "",
+        dob: "",
+        spol: "M",
+        role: "USER",
       });
       await loadUsers();
-    } catch (err: any) {
-      alert(err.message || 'Neuspješno kreiranje korisnika');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Neuspješno kreiranje korisnika";
+      alert(errorMessage);
     }
   };
 
@@ -106,204 +138,328 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-8 py-12">
+    <PageWrapper variant="default" className="bg-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-12">
-          <h1 className="text-gray-900 text-5xl md:text-7xl font-bold">
-            Admin Dashboard
-          </h1>
-          <Button
-            onClick={onLogout}
-            className="px-6 py-3 border-2 border-red-300 hover:bg-red-50 text-red-600 rounded-xl text-base font-semibold bg-white"
-          >
-            Odjavi se
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-12">
+          <AnimatedSection delay={0}>
+            <motion.h1
+              className="text-foreground text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
+              initial={skipAnimation ? undefined : { opacity: 0, x: -20 }}
+              animate={skipAnimation ? undefined : { opacity: 1, x: 0 }}
+              transition={springTransition}
+            >
+              Admin Dashboard
+            </motion.h1>
+          </AnimatedSection>
+
+          <AnimatedSection delay={0.1}>
+            <Button
+              onClick={onLogout}
+              variant="outline"
+              className={cn(
+                "px-6 py-2 h-auto rounded-lg",
+                "border-2 border-destructive/30 hover:bg-destructive/10",
+                "text-destructive font-medium",
+                "transition-all duration-300",
+                "btn-press"
+              )}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Odjavi se
+            </Button>
+          </AnimatedSection>
         </div>
 
         {/* Add User Section */}
-        {showAddUser ? (
-          <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10 mb-8">
-            <h2 className="text-gray-900 text-3xl font-bold mb-6">Dodaj novog korisnika</h2>
-            <form onSubmit={handleAddUser} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Ime</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUser.ime}
-                    onChange={(e) => setNewUser({ ...newUser, ime: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Prezime</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUser.prezime}
-                    onChange={(e) => setNewUser({ ...newUser, prezime: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Lozinka</label>
-                  <input
-                    type="password"
-                    required
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Datum rođenja</label>
-                  <input
-                    type="date"
-                    required
-                    value={newUser.dob}
-                    onChange={(e) => setNewUser({ ...newUser, dob: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Spol</label>
-                  <select
-                    value={newUser.spol}
-                    onChange={(e) => setNewUser({ ...newUser, spol: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  >
-                    <option value="M">Muški</option>
-                    <option value="Ž">Ženski</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-base font-semibold text-gray-700 mb-2">Uloga</label>
-                  <select
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all"
-                  >
-                    <option value="USER">Korisnik</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-4 mt-6">
-                <Button 
-                  type="submit" 
-                  className="flex-1 h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  Kreiraj korisnika
-                </Button>
+        <AnimatedSection delay={0.2} className="mb-8">
+          {showAddUser ? (
+            <Card className="shadow-lg border-border/50">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-2xl font-bold text-foreground">
+                  Dodaj novog korisnika
+                </CardTitle>
                 <Button
-                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowAddUser(false)}
-                  className="flex-1 h-14 border-2 border-gray-300 hover:bg-gray-100 text-gray-700 text-lg font-semibold rounded-xl bg-white transition-all duration-300"
+                  className="text-muted-foreground hover:text-foreground"
                 >
-                  Odustani
+                  <X className="h-5 w-5" />
                 </Button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <Button
-            onClick={() => setShowAddUser(true)}
-            className="mb-8 h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-8"
-          >
-            + Dodaj korisnika
-          </Button>
-        )}
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAddUser} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="ime" className="text-foreground font-semibold">
+                        Ime
+                      </Label>
+                      <Input
+                        id="ime"
+                        type="text"
+                        required
+                        value={newUser.ime}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, ime: e.target.value })
+                        }
+                        className="h-12 border-2 border-input rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prezime" className="text-foreground font-semibold">
+                        Prezime
+                      </Label>
+                      <Input
+                        id="prezime"
+                        type="text"
+                        required
+                        value={newUser.prezime}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, prezime: e.target.value })
+                        }
+                        className="h-12 border-2 border-input rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-foreground font-semibold">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        required
+                        value={newUser.email}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, email: e.target.value })
+                        }
+                        className="h-12 border-2 border-input rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-foreground font-semibold">
+                        Lozinka
+                      </Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        required
+                        value={newUser.password}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, password: e.target.value })
+                        }
+                        className="h-12 border-2 border-input rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dob" className="text-foreground font-semibold">
+                        Datum rođenja
+                      </Label>
+                      <Input
+                        id="dob"
+                        type="date"
+                        required
+                        value={newUser.dob}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, dob: e.target.value })
+                        }
+                        className="h-12 border-2 border-input rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-foreground font-semibold">Spol</Label>
+                      <Select
+                        value={newUser.spol}
+                        onValueChange={(value) =>
+                          setNewUser({ ...newUser, spol: value })
+                        }
+                      >
+                        <SelectTrigger className="h-12 border-2 border-input rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="M">Muški</SelectItem>
+                          <SelectItem value="Ž">Ženski</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-foreground font-semibold">Uloga</Label>
+                      <Select
+                        value={newUser.role}
+                        onValueChange={(value) =>
+                          setNewUser({ ...newUser, role: value })
+                        }
+                      >
+                        <SelectTrigger className="h-12 border-2 border-input rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USER">Korisnik</SelectItem>
+                          <SelectItem value="ADMIN">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <Button
+                      type="submit"
+                      className={cn(
+                        "flex-1 h-14",
+                        "bg-primary hover:bg-primary/90 text-primary-foreground",
+                        "text-lg font-semibold rounded-xl",
+                        "shadow-lg hover:shadow-xl",
+                        "transition-all duration-300",
+                        "btn-press"
+                      )}
+                    >
+                      Kreiraj korisnika
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setShowAddUser(false)}
+                      variant="outline"
+                      className={cn(
+                        "flex-1 h-14",
+                        "border-2 border-border hover:bg-secondary",
+                        "text-foreground text-lg font-semibold rounded-xl",
+                        "transition-all duration-300",
+                        "btn-press"
+                      )}
+                    >
+                      Odustani
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          ) : (
+            <Button
+              onClick={() => setShowAddUser(true)}
+              className={cn(
+                "h-14 px-8",
+                "bg-primary hover:bg-primary/90 text-primary-foreground",
+                "text-lg font-semibold rounded-xl",
+                "shadow-lg hover:shadow-xl",
+                "transition-all duration-300",
+                "btn-press"
+              )}
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Dodaj korisnika
+            </Button>
+          )}
+        </AnimatedSection>
 
         {/* Users Table */}
-        {loading ? (
-          <div className="text-center py-12 text-gray-500 text-lg">Učitavanje...</div>
-        ) : error ? (
-          <div className="bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-xl text-base font-medium">
-            {error}
-          </div>
-        ) : users.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <p className="text-gray-500 text-lg">Nema korisnika za prikaz</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                    Korisnik
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                    Uloga
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                    Igre
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                    Akcije
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="text-base font-semibold text-gray-900">
-                        {user.ime} {user.prezime}
-                      </div>
-                      <div className="text-sm text-gray-500 mt-1">{user.username}</div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-600">
-                      {user.email}
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-600 font-medium">
-                      {user._count.games}
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-base font-medium">
-                      {user.role !== 'ADMIN' && (
-                        <button
-                          onClick={() => setSelectedUser(user)}
-                          className="text-blue-600 hover:text-blue-800 mr-4 font-semibold transition-colors"
-                        >
-                          Detalji
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-800 font-semibold transition-colors"
+        <AnimatedSection delay={0.3}>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner className="h-8 w-8 text-primary" />
+              <span className="ml-3 text-muted-foreground">Učitavanje...</span>
+            </div>
+          ) : error ? (
+            <Card className="p-6 bg-destructive/10 border-destructive/20">
+              <p className="text-destructive text-center font-medium">{error}</p>
+            </Card>
+          ) : users.length === 0 ? (
+            <Card className="p-12 text-center shadow-lg">
+              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground text-lg">
+                Nema korisnika za prikaz
+              </p>
+            </Card>
+          ) : (
+            <Card className="shadow-lg border-border/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-bold text-foreground">
+                        Korisnik
+                      </TableHead>
+                      <TableHead className="font-bold text-foreground">
+                        Email
+                      </TableHead>
+                      <TableHead className="font-bold text-foreground">
+                        Uloga
+                      </TableHead>
+                      <TableHead className="font-bold text-foreground">
+                        Igre
+                      </TableHead>
+                      <TableHead className="font-bold text-foreground text-right">
+                        Akcije
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow
+                        key={user.id}
+                        className="hover:bg-muted/30 transition-colors"
                       >
-                        Obriši
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                        <TableCell>
+                          <div>
+                            <div className="font-semibold text-foreground">
+                              {user.ime} {user.prezime}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {user.username}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {user.email}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={user.role === "ADMIN" ? "default" : "secondary"}
+                            className={cn(
+                              user.role === "ADMIN"
+                                ? "bg-primary/20 text-primary border-primary/30"
+                                : "bg-secondary text-secondary-foreground"
+                            )}
+                          >
+                            {user.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-foreground font-medium">
+                          {user._count.games}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {user.role !== "ADMIN" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedUser(user)}
+                                className="text-primary hover:text-primary/80 hover:bg-primary/10"
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Detalji
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Obriši
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          )}
+        </AnimatedSection>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

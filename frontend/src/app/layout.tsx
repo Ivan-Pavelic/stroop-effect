@@ -1,16 +1,41 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import React from "react"
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-inter",
-});
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Stroop Test",
-  description: "Testirajte svoje kognitivne sposobnosti Stroop testom",
+  title: "Kognitivne Igre - Testirajte svoje kognitivne sposobnosti",
+  description:
+    "Testirajte i poboljšajte svoje kognitivne sposobnosti kroz Stroop test i igru Lanac Pamćenja. Pratite svoj napredak i usporedite rezultate.",
+  generator: "v0.app",
+  icons: {
+    icon: [
+      {
+        url: "/icon-light-32x32.png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/icon-dark-32x32.png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: "/icon.svg",
+        type: "image/svg+xml",
+      },
+    ],
+    apple: "/apple-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4f46e5",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -19,10 +44,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} font-sans antialiased`}
-      >
+    <html lang="hr">
+      <body className="font-sans antialiased min-h-screen bg-background">
         {children}
       </body>
     </html>
