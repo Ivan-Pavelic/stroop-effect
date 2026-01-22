@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { prefersReducedMotion, digitVariants, springTransition, correctVariants } from "@/lib/animations";
 import { cn } from "@/lib/utils";
-import { RotateCcw, ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check, X } from "lucide-react";
 
 interface MemoryChainScreenProps {
   round: number;
@@ -137,18 +137,6 @@ export function MemoryChainScreen({
     }
   };
 
-  const handleReset = () => {
-    const baseLevel = getInitialLevel();
-    setLevel(baseLevel);
-    setShowIntro(true);
-    setPhase("intro");
-    setSequence([]);
-    setUserSequence([]);
-    setChecked(false);
-    setAccuracy(0);
-    setNextLevelPreview(baseLevel);
-    setIsGameStarted(false);
-  };
 
   const progressValue = (round / totalRounds) * 100;
 
@@ -322,7 +310,7 @@ export function MemoryChainScreen({
           </div>
         </div>
 
-        {/* Action buttons */}
+        {/* Action button */}
         <div className="flex flex-col items-center gap-4">
           <Button
             onClick={() => onAnswer(isCorrect)}
@@ -337,21 +325,6 @@ export function MemoryChainScreen({
           >
             <ArrowRight className="mr-2 h-6 w-6" />
             SLJEDEĆA RAZINA
-          </Button>
-
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className={cn(
-              "h-12 md:h-14 px-8",
-              "border-2 border-destructive/30 hover:bg-destructive/10",
-              "text-destructive font-bold text-lg md:text-xl rounded-xl",
-              "transition-all duration-300",
-              "btn-press"
-            )}
-          >
-            <RotateCcw className="mr-2 h-5 w-5" />
-            ISPOČETKA
           </Button>
         </div>
       </motion.div>
