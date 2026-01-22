@@ -131,7 +131,14 @@ export function UserDetail({ user, onBack, onDelete }: UserDetailProps) {
       return true;
     });
 
-    return uniqueData.map((point, index) => {
+    // Sort by date to ensure lines connect properly
+    const sortedData = [...uniqueData].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateA - dateB;
+    });
+
+    return sortedData.map((point, index) => {
       const date = new Date(point.date);
       const label = point.gameNumber
         ? `Igra ${point.gameNumber}`
@@ -145,7 +152,7 @@ export function UserDetail({ user, onBack, onDelete }: UserDetailProps) {
         date: label,
         dateKey: `${point.date}-${index}`,
         "Točnost (%)": Math.round(point.accuracy),
-        "Kognitivni Score": point.cognitiveScore,
+        "Kognitivni Score": Math.round(point.cognitiveScore * 10) / 10,
         "Prosječno vrijeme (ms)": Math.round(point.avgTime),
         "Kongruentni (%)": Math.round(point.congruentAccuracy),
         "Nekongruentni (%)": Math.round(point.incongruentAccuracy),
@@ -346,36 +353,40 @@ export function UserDetail({ user, onBack, onDelete }: UserDetailProps) {
                         <Line
                           type="monotone"
                           dataKey="Točnost (%)"
-                          stroke="hsl(var(--primary))"
+                          stroke="#4f46e5"
                           strokeWidth={2.5}
-                          dot={{ r: 4, fill: "hsl(var(--primary))" }}
-                          activeDot={{ r: 6 }}
+                          dot={{ r: 4, fill: "#4f46e5" }}
+                          activeDot={{ r: 6, fill: "#4f46e5" }}
+                          connectNulls={false}
                         />
                         <Line
                           type="monotone"
                           dataKey="Kognitivni Score"
-                          stroke="hsl(var(--success))"
+                          stroke="#10b981"
                           strokeWidth={2.5}
-                          dot={{ r: 4, fill: "hsl(var(--success))" }}
-                          activeDot={{ r: 6 }}
+                          dot={{ r: 4, fill: "#10b981" }}
+                          activeDot={{ r: 6, fill: "#10b981" }}
+                          connectNulls={false}
                         />
                         <Line
                           type="monotone"
                           dataKey="Kongruentni (%)"
-                          stroke="hsl(var(--chart-1))"
+                          stroke="#8b5cf6"
                           strokeWidth={2}
-                          dot={{ r: 3 }}
-                          activeDot={{ r: 5 }}
+                          dot={{ r: 3, fill: "#8b5cf6" }}
+                          activeDot={{ r: 5, fill: "#8b5cf6" }}
                           strokeDasharray="5 5"
+                          connectNulls={false}
                         />
                         <Line
                           type="monotone"
                           dataKey="Nekongruentni (%)"
-                          stroke="hsl(var(--warning))"
+                          stroke="#f59e0b"
                           strokeWidth={2}
-                          dot={{ r: 3 }}
-                          activeDot={{ r: 5 }}
+                          dot={{ r: 3, fill: "#f59e0b" }}
+                          activeDot={{ r: 5, fill: "#f59e0b" }}
                           strokeDasharray="5 5"
+                          connectNulls={false}
                         />
                       </LineChart>
                     </ResponsiveContainer>
