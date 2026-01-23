@@ -330,17 +330,21 @@ export function UserDetail({ user, onBack, onDelete }: UserDetailProps) {
                         />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #e5e7eb",
                             borderRadius: "12px",
                             padding: "12px",
                             fontSize: "13px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            opacity: 1,
                           }}
                           labelStyle={{
-                            color: "hsl(var(--foreground))",
+                            color: "#111827",
                             fontWeight: "bold",
                             marginBottom: "8px",
+                          }}
+                          itemStyle={{
+                            color: "#111827",
                           }}
                         />
                         <Legend
