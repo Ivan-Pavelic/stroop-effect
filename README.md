@@ -468,6 +468,13 @@ The application is grounded in research exploring:
 44. The role of intraindividual variability in cognitive aging: Implications for assessment and intervention - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC11239921/)
 45. Cognitive slowing and variability in normal aging and dementia: A meta-analysis - [PubMed](https://pubmed.ncbi.nlm.nih.gov/25280971/)
 
+#### AI / Machine Learning Applications for Cognitive Health
+46. Artificial intelligence in digital health for cognitive decline detection: A systematic review - [PubMed](https://pubmed.ncbi.nlm.nih.gov/36744643/)
+47. Machine learning in early diagnosis of Alzheimer's disease: A review - [PubMed](https://pubmed.ncbi.nlm.nih.gov/33677816/)
+48. Deep learning applications in cognitive neuroscience and digital health - [PubMed](https://pubmed.ncbi.nlm.nih.gov/33860552/)
+49. Using smartphone-based passive data and AI to detect early cognitive changes - [PubMed](https://pubmed.ncbi.nlm.nih.gov/34864318/)
+50. Explainable AI for cognitive screening in older adults: From prediction to clinical insight - [PubMed](https://pubmed.ncbi.nlm.nih.gov/38020091/)
+
 ---
 
 ## 🙏 Acknowledgments
