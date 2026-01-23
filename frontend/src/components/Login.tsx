@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageWrapper, AnimatedSection } from "@/components/PageWrapper";
 import { authAPI } from "@/services/api";
 import { prefersReducedMotion, springTransition } from "@/lib/animations";
@@ -75,10 +75,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
               transition={springTransition}
             >
               <DialogContent className="max-w-md">
-                <DialogClose onClose={() => setShowQRPopup(false)} />
                 <DialogHeader>
                   <DialogTitle className="text-2xl md:text-3xl font-bold text-center">
-                    📱 Skeniraj QR kod
+                    📱 Isprobajte igru uživo
                   </DialogTitle>
                 </DialogHeader>
                 
@@ -96,9 +95,6 @@ export function Login({ onLoginSuccess }: LoginProps) {
                   {/* Demo Credentials */}
                   <div className="w-full space-y-4">
                     <div className="bg-primary/5 rounded-xl p-4 border-2 border-primary/20">
-                      <p className="text-center text-sm md:text-base text-muted-foreground mb-3">
-                        Pozivamo vas na demonstraciju i isprobavanje igre:
-                      </p>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between p-2 bg-background rounded-lg">
                           <span className="text-sm font-semibold text-foreground">Korisničko ime:</span>
@@ -112,12 +108,11 @@ export function Login({ onLoginSuccess }: LoginProps) {
                     </div>
 
                     <p className="text-center text-xs md:text-sm text-muted-foreground">
-                      Skenirajte QR kod ili posjetite:{" "}
                       <a
                         href={qrUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline font-semibold"
+                        className="text-primary hover:underline font-semibold block"
                       >
                         stroop-frontend.onrender.com
                       </a>

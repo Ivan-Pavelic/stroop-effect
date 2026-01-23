@@ -8,7 +8,9 @@ export interface SelectProps
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, children, onValueChange, onChange, ...props }, ref) => {
+  (props, ref) => {
+    const { className, children, onValueChange, onChange, ...restProps } = props;
+    
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       if (onValueChange) {
         onValueChange(e.target.value);
@@ -26,7 +28,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         )}
         ref={ref}
         onChange={handleChange}
-        {...props}
+        {...restProps}
       >
         {children}
       </select>
