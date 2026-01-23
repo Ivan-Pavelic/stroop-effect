@@ -399,9 +399,74 @@ For testing purposes, you can use:
 
 ---
 
-## 📝 License
+## 📚 Research Foundation
 
-This project is part of a university course project.
+This project was created on the basis of research in cognitive assessment, particularly focusing on the Stroop Test as a tool for early detection of cognitive decline in elderly populations, including Alzheimer's disease and Parkinson's disease.
+
+### Key Research Areas
+
+The application is grounded in research exploring:
+- **Stroop Test as a cognitive screening tool** for elderly populations
+- **Digital biomarkers** for early detection of neurodegenerative diseases
+- **Reaction time variability** as an indicator of cognitive decline
+- **Remote cognitive assessment** using digital technologies
+
+### Important Literature
+
+#### Stroop Test in Alzheimer's Disease (Elderly Focus)
+1. Stroop effects in Alzheimer's disease: selective attention speed of processing, or color-naming? A meta-analysis - [PubMed](https://pubmed.ncbi.nlm.nih.gov/24100125/)
+2. The Stroop color-word test: indicator of dementia severity - [PubMed](https://pubmed.ncbi.nlm.nih.gov/6480252/)
+3. The utility of Stroop task switching as a marker for early-stage Alzheimer's disease - [PubMed](https://pubmed.ncbi.nlm.nih.gov/20853964/)
+4. Stroop Color-Word Test performance in patients with Alzheimer's disease - [PubMed](https://pubmed.ncbi.nlm.nih.gov/2258434/)
+5. Evaluating the Stroop Test With Older Adults: Construct Validity, Short Term Test-Retest Reliability, and Sensitivity to Mental Fatigue - [PubMed](https://pubmed.ncbi.nlm.nih.gov/38739018/)
+6. Aging and response inhibition: Normative data for the Victoria Stroop Test - [PubMed](https://pubmed.ncbi.nlm.nih.gov/16766341/)
+7. Normative study of the Stroop Color and Word Test in an educationally diverse elderly population - [PubMed](https://pubmed.ncbi.nlm.nih.gov/18425990/)
+8. Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type - [PubMed](https://pubmed.ncbi.nlm.nih.gov/8934854/)
+9. Victoria Stroop Test: normative data in a sample group of older people and the study of their clinical applications in the assessment of inhibition in Alzheimer's disease - [PubMed](https://pubmed.ncbi.nlm.nih.gov/21873625/)
+10. Stroop interference, practice, and aging - [PubMed](https://pubmed.ncbi.nlm.nih.gov/17203134/)
+
+#### Stroop Test in Parkinson's Disease (Elderly Focus)
+11. Stroop Test for Parkinson's Disease with Deep Brain Stimulation: A Systematic Review - [PubMed](https://pubmed.ncbi.nlm.nih.gov/36591546/)
+12. Use of a Modified STROOP Test to Assess Color Discrimination Deficit in Parkinson's Disease - [Frontiers](https://www.frontiersin.org/journals/neurology/articles/10.3389/fneur.2018.00765/full)
+13. Parkinson's Disease and the Stroop Color Word Test: Processing Speed and Interference Algorithms - [PMC](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5036998/)
+14. Cognitive assessment instruments in Parkinson's disease patients undergoing deep brain stimulation - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC5619101/)
+15. Stroop Test for Parkinson's Disease with Deep Brain Stimulation: A Systematic Review - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC9776780/)
+16. Cognitive Assessment for Parkinson's Disease Patients (CAB-PK) - [CogniFit](https://www.cognifit.com/parkinson-test)
+17. Parkinson's Disease and the Stroop Color Word Test: Processing Speed and Interference Algorithms - [ResearchGate](https://www.researchgate.net/publication/303835753_Parkinson%27s_Disease_and_the_Stroop_Color_Word_Test_Processing_Speed_and_Interference_Algorithms)
+18. Stroop test performance in impulsive and non impulsive patients with Parkinson's disease - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC3042030/)
+
+#### General Cognitive Screening Tools for Alzheimer's, Parkinson's, and Elderly
+19. Cognitive Assessment Tools | Alzheimer's Association - [alz.org](https://www.alz.org/professionals/health-systems-medical-professionals/clinical-resources/cognitive-assessment-tools)
+20. Cognitive Screening and Assessment | Alzheimer's Association - [alz.org](https://www.alz.org/professionals/health-systems-medical-professionals/cognitive-assessment)
+21. Dementia screening and diagnosis tools for health-care providers | Alzheimer Society of Canada - [alzheimer.ca](https://alzheimer.ca/en/help-support/im-health-care-provider/dementia-diagnosis-screening-tools-health-care-providers)
+22. Medical Tests for Diagnosing Alzheimer's & Dementia | alz.org - [alz.org](https://www.alz.org/alzheimers-dementia/diagnosis/medical_tests)
+23. Science & Tech Spotlight: At-Home Tools to Diagnose Alzheimer's, Parkinson's, and Related Diseases | U.S. GAO - [gao.gov](https://www.gao.gov/products/gao-24-107306)
+24. Memory Tests: Screening for Alzheimer's and Other Dementias - [verywellhealth.com](https://www.verywellhealth.com/alzheimers-tests-98647)
+25. A guide to detecting cognitive impairment during the Medicare - [alz.org](https://www.alz.org/getmedia/9687d51e-641a-43a1-a96b-b29eb00e72bb/cognitive-assessment-toolkit)
+26. Montreal Cognitive Assessment (MoCA) Test for Dementia - [verywellhealth.com](https://www.verywellhealth.com/alzheimers-and-montreal-cognitive-assessment-moca-98617)
+27. Brief cognitive screening instruments for early detection of Alzheimer's disease: a systematic review - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC6396539/)
+28. SAGE - Memory Disorders | Ohio State Medical Center - [wexnermedical.osu.edu](https://wexnermedical.osu.edu/brain-spine-neuro/memory-disorders/sage)
+
+#### Digital / Cognitive Biomarkers and Remote Assessment (Elderly, Alzheimer's, Parkinson's)
+29. Digital biomarkers in Alzheimer's disease: The mobile Alzheimer's disease digital biomarker study - [PubMed](https://pubmed.ncbi.nlm.nih.gov/35748542/)
+30. Digital biomarkers of cognitive function: Development and validation of smartphone-based cognitive assessments - [PubMed](https://pubmed.ncbi.nlm.nih.gov/36656804/)
+31. The digital clock drawing test: Cognitive assessment using an innovative digital pen technology - [PubMed](https://pubmed.ncbi.nlm.nih.gov/26545626/)
+32. Wearable technology for early detection of Parkinson's disease: A systematic review - [PubMed](https://pubmed.ncbi.nlm.nih.gov/36940205/)
+33. Smartphone-based assessment of cognitive and motor function in Parkinson's disease - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC7709932/)
+34. The mPower study, Parkinson's disease mobile data collection using ResearchKit - [PubMed](https://pubmed.ncbi.nlm.nih.gov/27145905/)
+35. Machine learning analysis of smartphone sensor data detects Parkinson's disease motor symptoms remotely - [PubMed](https://pubmed.ncbi.nlm.nih.gov/31411374/)
+36. Digital cognitive biomarkers for Alzheimer's disease: The road ahead - [PubMed](https://pubmed.ncbi.nlm.nih.gov/35016317/)
+37. Cognitive variability as a digital biomarker for preclinical Alzheimer's disease - [PubMed](https://pubmed.ncbi.nlm.nih.gov/35426740/)
+38. Remote digital cognitive assessment for detection of mild cognitive impairment: A systematic review - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC11166260/)
+39. Digital phenotyping in aging and dementia: State of the art and future directions - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC10680059/)
+40. Digital health technologies for Parkinson's disease: State of play and future prospects - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC9776780/)
+
+#### Reaction Time, Variability, and Cognitive Decline (Elderly Focus)
+41. Intraindividual variability in reaction time as an indicator of cognitive decline in older adults - [PubMed](https://pubmed.ncbi.nlm.nih.gov/31403620/)
+42. Reaction time variability and its association with white matter integrity in aging - [PubMed](https://pubmed.ncbi.nlm.nih.gov/24040929/)
+43. Intraindividual reaction time variability predicts cognitive decline in older adults: A longitudinal study - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC11339454/)
+44. The role of intraindividual variability in cognitive aging: Implications for assessment and intervention - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC11239921/)
+45. Cognitive slowing and variability in normal aging and dementia: A meta-analysis - [PubMed](https://pubmed.ncbi.nlm.nih.gov/25280971/)
 
 ---
 
@@ -409,3 +474,4 @@ This project is part of a university course project.
 
 - Stroop Effect research and cognitive assessment methodologies
 - Open source community for excellent tools and libraries
+- All researchers and institutions contributing to cognitive assessment and digital biomarker research

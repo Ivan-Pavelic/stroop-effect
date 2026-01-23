@@ -263,11 +263,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
           href="https://github.com/Ivan-Pavelic/stroop-effect"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-muted-foreground hover:text-primary text-sm transition-colors duration-200 flex items-center justify-center gap-2"
+          className="text-muted-foreground hover:text-primary text-sm transition-colors duration-200"
         >
-          <span>GitHub</span>
-          <span className="opacity-50">•</span>
-          <span className="font-mono text-xs">Ivan-Pavelic/stroop-effect</span>
+          GitHub
         </a>
       </AnimatedSection>
     </PageWrapper>
