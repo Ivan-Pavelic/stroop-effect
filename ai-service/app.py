@@ -49,7 +49,7 @@ def analyze_performance():
         
         # Extract game data
         corr_mean = data.get('corr_mean', data.get('accuracy', 0))
-        rt_mean = data.get('rt_mean', data.get('avgTime', 1000))
+        rt_mean = data.get('rt_mean', data.get('avgTime', 1000)) / 1000
         age = data.get('age', 50)
         sex = data.get('sex', 0.5)
         timeofday = data.get('timeofday', data.get('timeOfDay', 12*60))
