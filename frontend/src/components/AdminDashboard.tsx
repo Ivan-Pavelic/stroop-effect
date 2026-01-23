@@ -149,7 +149,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
               animate={skipAnimation ? undefined : { opacity: 1, x: 0 }}
               transition={springTransition}
             >
-              Admin Dashboard
+              Korisnici
             </motion.h1>
           </AnimatedSection>
 
