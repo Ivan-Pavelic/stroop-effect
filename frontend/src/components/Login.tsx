@@ -256,6 +256,20 @@ export function Login({ onLoginSuccess }: LoginProps) {
           </CardContent>
         </Card>
       </AnimatedSection>
+
+      {/* GitHub Link */}
+      <AnimatedSection delay={0.2} className="mt-8">
+        <a
+          href="https://github.com/Ivan-Pavelic/stroop-effect"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-primary text-sm transition-colors duration-200 flex items-center justify-center gap-2"
+        >
+          <span>GitHub</span>
+          <span className="opacity-50">•</span>
+          <span className="font-mono text-xs">Ivan-Pavelic/stroop-effect</span>
+        </a>
+      </AnimatedSection>
     </PageWrapper>
     </>
   );

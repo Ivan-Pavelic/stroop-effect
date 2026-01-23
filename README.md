@@ -1,6 +1,6 @@
 # 🧠 Stroop Effect Game
 
-A full-stack cognitive assessment web application that measures cognitive flexibility using the Stroop Effect. The app includes AI-powered performance analysis and personalized recommendations.
+A full-stack cognitive assessment web application that measures cognitive flexibility using the Stroop Effect. The app includes AI-powered performance analysis, personalized recommendations, and multiple cognitive games.
 
 ![Stroop Test](https://img.shields.io/badge/Status-Live-brightgreen)
 ![Next.js](https://img.shields.io/badge/Frontend-Next.js-black)
@@ -14,7 +14,7 @@ A full-stack cognitive assessment web application that measures cognitive flexib
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **🎮 Play the Game** | [stroop-frontend.onrender.com](https://stroop-frontend.onrender.com) | Main application - play the Stroop Test here |
+| **🎮 Play the Game** | [stroop-frontend.onrender.com](https://stroop-frontend.onrender.com) | Main application - play cognitive games here |
 | **🔌 Backend API** | [stroop-backend.onrender.com](https://stroop-backend.onrender.com) | REST API server |
 | **🤖 AI Service** | [stroop-ai-service.onrender.com](https://stroop-ai-service.onrender.com) | Python AI analysis service |
 | **📊 API Health Check** | [stroop-backend.onrender.com/api/health](https://stroop-backend.onrender.com/api/health) | Check if API is running |
@@ -23,60 +23,70 @@ A full-stack cognitive assessment web application that measures cognitive flexib
 
 ---
 
-## 🎮 How to Play the Stroop Test
+## 🎮 Available Games
 
-### What is the Stroop Effect?
-The Stroop Effect demonstrates the interference in reaction time when the name of a color is printed in a different color ink. For example, the word "RED" printed in blue ink.
+### 1. Stroop Effect Game
+The classic Stroop Effect test that measures cognitive flexibility and interference control.
 
-### Game Instructions
+**Features:**
+- Dynamic difficulty scaling with progressive color additions
+- Series-based gameplay (increases complexity over time)
+- Croatian language interface
+- Real-time performance tracking
+- AI-powered cognitive analysis
 
-1. **Start the Game**
-   - Visit [stroop-frontend.onrender.com](https://stroop-frontend.onrender.com)
-   - Click the **"START"** button
+**How to Play:**
+1. Read the color word displayed on screen (e.g., "CRVENA", "PLAVA", "ZELENA")
+2. Select the **COLOR** the word is displayed in (not the word itself!)
+3. Example: If you see "CRVENA" written in blue color, select "PLAVA"
+4. Complete all rounds as quickly and accurately as possible
 
-2. **Play Each Round**
-   - You will see a color word (e.g., "RED", "BLUE", "GREEN", "YELLOW")
-   - The word will be displayed in a color that may or may not match the word
-   - **Your task:** Select the COLOR the word is DISPLAYED in (not the word itself!)
-   - Example: If you see "RED" written in blue color, select "BLUE"
+**Difficulty Progression:**
+- Series 1: 4 colors (CRVENA, PLAVA, ZELENA, ŽUTA)
+- Series 2+: Additional colors added (LJUBIČASTA, SMEĐA, NARANČASTA, ROZA)
+- Congruence chance decreases with each series
 
-3. **Complete All Rounds**
-   - Answer all 10 questions as quickly and accurately as possible
-   - Your response time and accuracy are measured
+### 2. Memory Chain (Lanac Pamćenja)
+A memory training game that challenges your working memory and attention span.
 
-4. **View Your Results**
-   - After completing the game, you'll see:
-     - Your score (correct answers / total rounds)
-     - Accuracy percentage
-     - Average response time
-     - 🧠 **AI Analysis** including:
-       - Cognitive Score (0-100)
-       - Performance level (Excellent/Good/Average/Needs Improvement)
-       - Component scores (Accuracy, Speed, Consistency)
-       - Personalized feedback
-       - Recommendations for improvement
+**Features:**
+- Progressive difficulty levels
+- Visual memory challenges
+- Performance tracking
+- Croatian language interface
 
-5. **Play Again or Return to Menu**
-   - Click "Play Again" to start a new game
-   - Click "Back to Menu" to access other features
+---
 
-### Game Modes
+## 🎯 Key Features
 
-| Mode | Description |
-|------|-------------|
-| **Single Player** | Standard game - test your cognitive abilities |
-| **Multiplayer** | Coming soon - compete with friends |
+### User Features
+- ✅ **User Registration & Authentication** - Secure JWT-based login system
+- ✅ **Multiple Cognitive Games** - Stroop Effect and Memory Chain
+- ✅ **Real-time Performance Tracking** - Track accuracy, reaction time, and cognitive scores
+- ✅ **Leaderboard** - Compete with other players (end-users only)
+- ✅ **Personal Statistics** - View your game history and progress
+- ✅ **Responsive Design** - Optimized for mobile devices and tablets
+- ✅ **Croatian Language** - Full localization in Croatian
+- ✅ **QR Code Access** - Easy mobile access via QR code on login screen
 
-### Settings
+### Admin Features
+- ✅ **User Management Dashboard** - View and manage all users
+- ✅ **User Details & Analytics** - Detailed performance graphs and statistics
+- ✅ **AI Analysis Insights** - View cognitive scores and AI feedback for users
+- ✅ **User Creation** - Add new users to the system
+- ✅ **Secure Admin Access** - Role-based access control
 
-Access Settings from the main menu to customize:
-- **Number of Rounds:** 5, 10, 15, or 20
-- **Difficulty:** Easy, Medium, or Hard
-- **Language:** English (more coming soon)
+### Technical Features
+- ✅ **AI-Powered Analysis** - Machine learning-based cognitive assessment
+- ✅ **Real-time Data Visualization** - Interactive charts using Recharts
+- ✅ **Modern UI/UX** - Beautiful animations with Framer Motion
+- ✅ **Type-Safe API** - Full TypeScript implementation
+- ✅ **Database Migrations** - Automated schema management with Prisma
 
 ---
 
 ## 📁 Project Structure
+
 ```
 stroop-effect/
 │
@@ -88,20 +98,28 @@ stroop-effect/
 │   │   │   └── page.tsx            # Main page component
 │   │   │
 │   │   ├── 📂 components/          # React Components
-│   │   │   ├── 📂 ui/
-│   │   │   │   └── button.tsx      # Reusable button component
+│   │   │   ├── 📂 ui/              # Reusable UI components
+│   │   │   │   ├── button.tsx
+│   │   │   │   ├── card.tsx
+│   │   │   │   ├── input.tsx
+│   │   │   │   ├── select.tsx
+│   │   │   │   ├── table.tsx
+│   │   │   │   └── ...
+│   │   │   ├── Login.tsx           # Login screen with QR code
 │   │   │   ├── MainMenu.tsx        # Home screen
-│   │   │   ├── GameScreen.tsx      # Game play screen
-│   │   │   ├── FeedbackScreen.tsx  # Answer feedback
+│   │   │   ├── GameScreen.tsx      # Stroop game screen
+│   │   │   ├── MemoryChainScreen.tsx # Memory Chain game
 │   │   │   ├── ResultsScreen.tsx   # Final results + AI analysis
-│   │   │   ├── Settings.tsx        # Game settings
+│   │   │   ├── AdminDashboard.tsx   # Admin user management
+│   │   │   ├── UserDetail.tsx      # User statistics & graphs
 │   │   │   └── Leaderboard.tsx     # Top scores
 │   │   │
 │   │   ├── 📂 services/
 │   │   │   └── api.ts              # API connection service
 │   │   │
 │   │   └── 📂 lib/
-│   │       └── utils.ts            # Utility functions
+│   │       ├── utils.ts            # Utility functions
+│   │       └── animations.ts       # Animation utilities
 │   │
 │   ├── .env.local                  # Environment variables
 │   ├── package.json                # Dependencies
@@ -114,19 +132,21 @@ stroop-effect/
 │   │   │   ├── authController.ts   # Authentication logic
 │   │   │   ├── gameController.ts   # Game results logic
 │   │   │   ├── leaderboardController.ts  # Leaderboard logic
+│   │   │   ├── adminController.ts # Admin operations
 │   │   │   └── aiController.ts     # AI service connection
 │   │   │
 │   │   ├── 📂 routes/              # API Endpoints
 │   │   │   ├── auth.ts             # /api/auth/*
 │   │   │   ├── game.ts             # /api/game/*
 │   │   │   ├── leaderboard.ts      # /api/leaderboard/*
+│   │   │   ├── admin.ts            # /api/admin/*
 │   │   │   └── ai.ts               # /api/ai/*
 │   │   │
 │   │   ├── 📂 middleware/
 │   │   │   └── auth.ts             # JWT authentication
 │   │   │
-│   │   ├── 📂 types/
-│   │   │   └── index.ts            # TypeScript type definitions
+│   │   ├── 📂 lib/
+│   │   │   └── prisma.ts           # Prisma client singleton
 │   │   │
 │   │   └── index.ts                # Server entry point
 │   │
@@ -141,54 +161,27 @@ stroop-effect/
 ├── 📂 ai-service/                  # Python Flask AI Service
 │   ├── app.py                      # Main Flask application
 │   ├── requirements.txt            # Python dependencies
+│   ├── stroop_model.joblib         # Trained ML model
 │   ├── .env                        # Environment variables
 │   └── 📂 venv/                    # Python virtual environment
 │
 ├── .gitignore                      # Git ignore rules
-└── README.md                       # This file (you are here :))
+└── README.md                       # This file
 ```
 
 ---
 
 ## 🗄️ Database Schema
-```
-┌──────────────────────────────────────────────────────────────────────────────────────┐
-│                                   DATABASE TABLES                                    │
-├──────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                      │
-│     ┌─────────────┐    ┌─────────────┐     ┌───────────────┐     ┌─────────────┐     │
-│     │ ai_analysis │    │   users     │     │   games       │     │   results   │     │
-│     ├─────────────┤    ├─────────────┤     ├───────────────┤     ├─────────────┤     │
-│     │ id          │  ┌─│ id          │────<│ user_id       │     │ id          │     │
-│     │ user_id     │──┘ │ ime         │     │ id            │────<│ game_id     │     │
-│     │ rezultat_ai │    │ prezime     │     │ datum         │     │ tocnost     │     │
-│     │ datum       │    │ dob         │     │ trajanje      │     │ brzina      │     │
-│     └─────────────┘    │ spol        │     │ broj_zadataka │     │ kognitivni_ │     │
-│                        │ email       │     │ broj_pogresaka│     │   score     │     │
-│                        │ lozinka_hash│     │ prosjecno_    │     └─────────────┘     │
-│                        │ created_at  │     │   vrijeme     │                         │
-│                        └─────────────┘     └───────────────┘                         │
-│                               │                                                      │
-│                               │            ┌──────────────┐                          │
-│                               │            │  ai_tasks    │                          │
-│                               │            ├──────────────┤                          |
-│                               │            │ id           │                          │
-│                               │            │ task_text    │                          │
-│                               │            │ boja_teksta  │                          │
-│                               └───────────>│ tocan_odgovor│                          │
-│                               |            │ tezina       │                          │
-│                               |            └──────────────┘                          │
-│                               │                                                      │
-│                               │            ┌─────────────┐                           │
-│                               │            │  feedback   │                           │
-│                               │            ├─────────────┤                           │
-│                               └───────────>│ id          │                           │
-│                                            │ user_id     │                           │
-│                                            │ komentar    │                           │
-│                                            │ ocjena      │                           │
-│                                            └─────────────┘                           │
-└──────────────────────────────────────────────────────────────────────────────────────┘
-```
+
+The application uses PostgreSQL with Prisma ORM. Key models include:
+
+- **User** - User accounts with authentication (username, email, role: USER/ADMIN)
+- **Game** - Game sessions and metadata
+- **GameSession** - Individual game play sessions
+- **Result** - Game results with accuracy, reaction time, and cognitive scores
+- **AITask** - AI-generated tasks
+- **AIAnalysis** - AI performance analysis results
+- **Feedback** - User feedback and ratings
 
 ---
 
@@ -197,11 +190,12 @@ stroop-effect/
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | **Frontend** | Next.js 16, React 19, TypeScript | User interface |
-| **Styling** | Tailwind CSS | Responsive design |
+| **Styling** | Tailwind CSS, Framer Motion | Responsive design & animations |
+| **Charts** | Recharts | Data visualization |
 | **Backend** | Node.js, Express 5, TypeScript | REST API |
 | **Database** | PostgreSQL 16 | Data persistence |
 | **ORM** | Prisma 5 | Database operations |
-| **AI Service** | Python 3, Flask | Cognitive analysis |
+| **AI Service** | Python 3, Flask, scikit-learn | Cognitive analysis |
 | **Authentication** | JWT (JSON Web Tokens) | Secure auth |
 | **Deployment** | Render | Cloud hosting |
 
@@ -217,18 +211,21 @@ stroop-effect/
 - Git
 
 ### Step 1: Clone the Repository
+
 ```bash
 git clone https://github.com/Ivan-Pavelic/stroop-effect.git
 cd stroop-effect
 ```
 
 ### Step 2: Set Up the Database
+
 ```bash
 # Connect to PostgreSQL and create database
 psql -U postgres -c "CREATE DATABASE stroop_db;"
 ```
 
 ### Step 3: Set Up the Backend
+
 ```bash
 cd backend
 
@@ -250,6 +247,7 @@ npm run dev
 ```
 
 ### Step 4: Set Up the AI Service
+
 ```bash
 cd ai-service
 
@@ -270,6 +268,7 @@ python app.py
 ```
 
 ### Step 5: Set Up the Frontend
+
 ```bash
 cd frontend
 
@@ -290,11 +289,18 @@ Open your browser and navigate to:
 - **Backend API:** http://localhost:5000
 - **AI Service:** http://localhost:5001
 
+### Demo Credentials
+
+For testing purposes, you can use:
+- **Username:** `demo.digobr`
+- **Password:** `digobr123`
+
 ---
 
 ## 📡 API Endpoints
 
 ### Authentication
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/register` | Register new user |
@@ -302,6 +308,7 @@ Open your browser and navigate to:
 | GET | `/api/auth/profile` | Get user profile |
 
 ### Game
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/game/result` | Save game result |
@@ -309,17 +316,75 @@ Open your browser and navigate to:
 | GET | `/api/game/stats` | Get user's statistics |
 
 ### Leaderboard
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/leaderboard` | Get top players |
-| GET | `/api/leaderboard/my-rank` | Get current user's rank |
+| GET | `/api/leaderboard` | Get top players (excludes admins) |
+
+### Admin
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/users` | Get all users (admin only) |
+| POST | `/api/admin/users` | Create new user (admin only) |
+| GET | `/api/admin/users/:id` | Get user details (admin only) |
+| GET | `/api/admin/users/:id/stats` | Get user statistics (admin only) |
 
 ### AI Analysis
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/ai/analyze` | Analyze game performance |
-| POST | `/api/ai/generate-tasks` | Generate adaptive tasks |
-| POST | `/api/ai/insights` | Get cognitive insights |
+
+---
+
+## 🎨 UI/UX Features
+
+- **Modern Design** - Clean, intuitive interface with smooth animations
+- **Responsive Layout** - Optimized for desktop, tablet, and mobile devices
+- **Accessibility** - Keyboard navigation and screen reader support
+- **Dark/Light Mode Ready** - CSS variables for easy theme switching
+- **Loading States** - Visual feedback during API calls
+- **Error Handling** - User-friendly error messages
+
+---
+
+## 🔒 Security Features
+
+- **JWT Authentication** - Secure token-based authentication
+- **Password Hashing** - Bcrypt password encryption
+- **Role-Based Access Control** - Admin and user role separation
+- **CORS Protection** - Configured CORS policies
+- **Input Validation** - Server-side validation for all inputs
+
+---
+
+## 📊 Performance Features
+
+- **Database Connection Pooling** - Optimized database connections
+- **Lazy Loading** - Code splitting for faster initial load
+- **Image Optimization** - Next.js image optimization
+- **Caching** - Strategic caching for API responses
+
+---
+
+## 🐛 Known Issues & Limitations
+
+- Free tier Render services may sleep after inactivity (15 minutes)
+- First request after sleep may take 30-60 seconds
+- Admin user is hidden from user list and leaderboard
+- AI feedback is only visible to admins (hidden from end-users)
+
+---
+
+## 🚧 Future Enhancements
+
+- [ ] Multiplayer game mode
+- [ ] Additional cognitive games
+- [ ] Email notifications
+- [ ] Export statistics to PDF
+- [ ] Mobile app version
+- [ ] Real-time multiplayer competitions
 
 ---
 
@@ -331,3 +396,16 @@ Open your browser and navigate to:
 | Lucija Klanjac | [@lus-terry](https://github.com/lus-terry) | lucija.klanjac@fer.hr |
 | Lukas Schönberger | [@Mboopii](https://github.com/Mboopii) | lukas.schonberger@fer.hr |
 | Ivan Pavelić | [@Ivan-Pavelic](https://github.com/Ivan-Pavelic) | ivan.pavelic@fer.hr |
+
+---
+
+## 📝 License
+
+This project is part of a university course project.
+
+---
+
+## 🙏 Acknowledgments
+
+- Stroop Effect research and cognitive assessment methodologies
+- Open source community for excellent tools and libraries
