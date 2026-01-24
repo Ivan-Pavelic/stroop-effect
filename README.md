@@ -23,6 +23,24 @@ A full-stack cognitive assessment web application that measures cognitive flexib
 
 ---
 
+## 📸 Screenshots
+
+Key screens from the application. **All screenshots are available in the repository:** [`frontend/screenshots/`](frontend/screenshots/)
+
+| Login | Main Menu | Stroop Game |
+|-------|-----------|-------------|
+| ![Login](frontend/screenshots/login.png) | ![Main Menu](frontend/screenshots/mainMenu.png) | ![Stroop Game](frontend/screenshots/gameScreen.png) |
+
+| Demo / QR Popup | Leaderboard | Admin Dashboard |
+|-----------------|-------------|-----------------|
+| ![Demo](frontend/screenshots/demo.png) | ![Leaderboard](frontend/screenshots/leaderboard.png) | ![Admin Dashboard](frontend/screenshots/adminDashboard.png) |
+
+| User Details (Analytics) | Game Instructions | Mode Selection |
+|--------------------------|-------------------|----------------|
+| ![User Details](frontend/screenshots/userDetails.png) | ![Instructions](frontend/screenshots/instructions.png) | ![Mode Selection](frontend/screenshots/chooseMode.png) |
+
+---
+
 ## 🎮 Available Games
 
 ### 1. Stroop Effect Game
@@ -121,6 +139,7 @@ stroop-effect/
 │   │       ├── utils.ts            # Utility functions
 │   │       └── animations.ts       # Animation utilities
 │   │
+│   ├── 📂 screenshots/             # App screenshots (see README 📸)
 │   ├── .env.local                  # Environment variables
 │   ├── package.json                # Dependencies
 │   ├── tailwind.config.ts          # Tailwind CSS config
